@@ -73,6 +73,13 @@ public class ModelUtils {
 		put("cube", cube);
 	}
 	
+	public static void free() {
+		for (LinkedList<Model> ml : models.values()) {
+			for (Model m : ml) {
+				m.free();
+			}
+		}
+	}
 	
 	
 	// param models
@@ -162,11 +169,13 @@ public class ModelUtils {
 		return new Potato(vertices, normals, tex_coords, ti, ai, tf, af, indices);
 	}
 	
-	public static Model grid_xy(int x, int y, double w, double h) {
-		double dx = w / (x-1);
-		double dy = h / (y-1);
-		double x0 = -w / 2;
-		double y0 = -h / 2;
+	public static LinkedList<Model> grid_xy(int x, int y) {
+		x++;
+		y++;
+		double dx = 1;
+		double dy = 1;
+		double x0 = -x / 2;
+		double y0 = -y / 2;
 		
 		float[] vertices = new float[x*y*3];
 		float[] normals = new float[x*y*3];
@@ -183,8 +192,8 @@ public class ModelUtils {
 				//normals[3*pos + 1] = 0f;
 				normals[3*pos + 2] = 1f;
 				
-				tex_coords[2*pos] = (float)j/x;
-				tex_coords[2*pos + 1] = (float)i/y;
+				tex_coords[2*pos] = (float)j;
+				tex_coords[2*pos + 1] = (float)i;
  			}
 		}
 		
@@ -200,8 +209,9 @@ public class ModelUtils {
 				indices[pos+5] = i*x + j + x;
 			}
 		}
-		
-		return new ModelA(vertices, normals, tex_coords, indices);
+		LinkedList<Model> list = new LinkedList<Model>();
+		list.add(new ModelA(vertices, normals, tex_coords, indices));
+		return list; 
 	}
 	
 	public static LinkedList<Model> ball(int x, int y) {

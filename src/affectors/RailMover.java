@@ -2,19 +2,21 @@ package affectors;
 
 import org.joml.Matrix3x2f;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 
 import aaa.Entity;
-import aaa.Hydraglider;
-import aaa.RailTrack;
+import aaa.Hydra;
+import aaa.Railway;
+import core.SKeyboard;
 
 public class RailMover extends Affector {
-	private RailTrack rail;
+	private Railway rail;
 	private float speed;
 	private float pos;
 	private float rot_bias;
 	private float z_bias;
 	
-	public RailMover(RailTrack rail, float pos, float speed, float rot_bias, float z_bias) {
+	public RailMover(Railway rail, float pos, float speed, float rot_bias, float z_bias) {
 		super();
 		this.rail = rail;
 		this.pos = pos;
@@ -34,6 +36,9 @@ public class RailMover extends Affector {
 	
 	@Override
 	protected void update_internal(double dt, Entity e) {
+		if (SKeyboard.isPressed(GLFW.GLFW_KEY_P)) {
+			dt *= 10;
+		}
 		this.pos += speed * dt;
 		
 		Matrix3x2f stuff = rail.getPosRot(this.pos);

@@ -14,7 +14,7 @@ uniform vec4[3][3] biome_colors = vec4[3][3](
 uniform vec3 light_direction;
 uniform vec4 light_color;
 uniform vec4 ambient_color;
-uniform vec4 distance_color;
+uniform vec4 distant_color;
 uniform vec3 view_pos;
 uniform float view_distance;
 uniform float alpha;
@@ -72,6 +72,6 @@ void main() {
 		}
 	}
 
-	fragColor =  mix(distance_color, (ambient + diffuse + specular) * surface_color_0, clarity);
+	fragColor =  mix(distant_color, (ambient + diffuse + specular) * surface_color_0, clarity);
 	fragColor = vec4(1, 1, 1, alpha) * fragColor; // not needed without use of alpha
 }

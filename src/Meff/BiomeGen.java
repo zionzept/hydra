@@ -35,7 +35,7 @@ public class BiomeGen implements F2D {
 		altitude.addComponent(200432, 1, 0);
 		altitude.addComponent(200432, 1, Math.PI/4);
 		altitude.addComponent(1331182, 1, Math.PI/8);
-		altitude.setConstant(0.3785735);
+		altitude.setConstant(1 + 0.3785735);
 		
 		temperature = new Noise2D();
 		temperature.addComponent(400432, 1, 1);

@@ -31,7 +31,7 @@ public class EntityFactory {
 	public static void createStoneTower(double x, double y) {
 		Entity e = new Entity();
 		e.addModels(ModelUtils.get("stone_tower"));
-		e.translate((float)x, (float)y, (float)Hydraglider.terrain_height.get(x, y));
+		e.translate((float)x, (float)y, (float)Hydra.terrain_height.get(x, y));
 		e.scale(2,2,10);
 		e.setShader(Shader.phong);
 		
@@ -40,7 +40,7 @@ public class EntityFactory {
 		
 		Attribute glow = new Glow(new Vector3f(1f, 0f, 0f));
 		Enabler enabler = new MouseEnabler(glow, e, hitbox);
-		Hydraglider.addEnabler(enabler);
+		Hydra.addEnabler(enabler);
 		
 		ScriptO script = new ScriptO(new Runnable() {
 			@Override
@@ -49,10 +49,10 @@ public class EntityFactory {
 			}
 		});
 		script.addCondition(new ClickCondition(hitbox));
-		Hydraglider.addScript(script);
+		Hydra.addScript(script);
 	
 		
-		Hydraglider.addEntity(e);
+		Hydra.addEntity(e);
 	}
 	
 	public static void createStone(Vector3f pos) {
@@ -64,11 +64,11 @@ public class EntityFactory {
 		
 		TimedLife tl = new TimedLife(30);
 		tl.applyTo(e);
-		Hydraglider.addAffector(tl);
+		Hydra.addAffector(tl);
 		
 		Tracker t = new Tracker(SMouse.pos());
 		t.applyTo(e);
-		Hydraglider.addAffector(t);
+		Hydra.addAffector(t);
 		
 		ScriptO script = new ScriptO(new Runnable() {
 			@Override
@@ -76,7 +76,7 @@ public class EntityFactory {
 				t.kill();
 				VectorMover vm = new VectorMover(new Vector3f(SMouse.vec().x, SMouse.vec().y, SMouse.vec().z), 100);
 				vm.applyTo(e);
-				Hydraglider.addAffector(vm);
+				Hydra.addAffector(vm);
 				ScriptO script = new ScriptO(new Runnable() {
 					@Override
 					public void run() {
@@ -87,10 +87,10 @@ public class EntityFactory {
 				script.addCondition(new Condition() {
 					@Override
 					public boolean evaluate() {
-						return e.z() < Hydraglider.terrain_height.get(e.x(), e.y());
+						return e.z() < Hydra.terrain_height.get(e.x(), e.y());
 					}
 				});
-				Hydraglider.queueScript(script);
+				Hydra.queueScript(script);
 			}
 		});
 		script.addCondition(new Condition() {
@@ -99,9 +99,9 @@ public class EntityFactory {
 				return !SMouse.isPressed(GLFW.GLFW_MOUSE_BUTTON_LEFT);
 			}
 		});
-		Hydraglider.queueScript(script);
+		Hydra.queueScript(script);
 		
-		Hydraglider.addEntity(e);
+		Hydra.addEntity(e);
 	}
 	
 	public static void spawnGlowCactus(double x, double y) {
@@ -118,7 +118,7 @@ public class EntityFactory {
 			e.setMaterialOverride(new Material(new Vector4f(0f,(float)Math.random(),0f, 1f), 
 					new Vector4f((float)Math.random(),1f,(float)Math.random(), 1f), 10));
 		}
-		e.setTranslation((float)x, (float)y, (float)Hydraglider.terrain_height.get(x, y) - 1f);
+		e.setTranslation((float)x, (float)y, (float)Hydra.terrain_height.get(x, y) - 1f);
 		e.scale((float)Math.random() + 2);
 		e.rotate_z((float)Math.random()*2*(float)Math.PI);
 		e.setShader(Shader.phong);
@@ -127,28 +127,28 @@ public class EntityFactory {
 			ScriptO script = new ScriptO(new Runnable() {
 				@Override
 				public void run() {
-					Affector gm = new GroundMover(Hydraglider.view.pos(), 100);
+					Affector gm = new GroundMover(Hydra.view.pos(), 100);
 					gm.applyTo(e);
-					Hydraglider.addAffector(gm);
+					Hydra.addAffector(gm);
 				}
 			});
 			script.addCondition(new Condition() {
 				@Override
 				public boolean evaluate() {
-					return Hydraglider.view.pos().distance(new Vector3f(e.x(), e.y(), e.z())) < 30;
+					return Hydra.view.pos().distance(new Vector3f(e.x(), e.y(), e.z())) < 30;
 				}
 			});
-			Hydraglider.queueScript(script);
+			Hydra.queueScript(script);
 		}
 		
-		Hydraglider.addEntity(e);
+		Hydra.addEntity(e);
 	}
 	
 	// type temporary solution
 	public static void createSpawner(double x, double y, int type) {
 		Entity spawner = new Entity();
 		spawner.addModels(ModelUtils.get("spawner"));
-		spawner.translate((float)x, (float)y, (float)Hydraglider.terrain_height.get(x, y));
+		spawner.translate((float)x, (float)y, (float)Hydra.terrain_height.get(x, y));
 		//e.scale(2,2,10);
 		spawner.setShader(Shader.phong);
 		
@@ -171,19 +171,19 @@ public class EntityFactory {
 		spawner.addChild(e);
 		Rotator rotator = new Rotator(new Vector3f(0, 0, 0.3f));
 		rotator.applyTo(e);
-		Hydraglider.addAffector(rotator);
+		Hydra.addAffector(rotator);
 		
 		Hitbox hitbox = new BoundingSphere(new Vector3f(0, 0, 0), 2);
 		hitbox.setEntity(spawner);
 		
 		Attribute glow = new Glow(new Vector3f(0f, 1f, 0f));
 		Enabler enabler = new MouseEnabler(glow, spawner, hitbox);
-		Hydraglider.addEnabler(enabler);
+		Hydra.addEnabler(enabler);
 		
 		Script script = new Script(run);
 		script.addCondition(new ClickCondition(hitbox));
-		Hydraglider.addScript(script);
+		Hydra.addScript(script);
 		
-		Hydraglider.addEntity(spawner);
+		Hydra.addEntity(spawner);
 	}
 }

@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.JFrame;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -36,12 +38,15 @@ import util.Potato;
 
 import static util.Util.tau;
 
-public class Hydraglider implements SKeyListener, SMouseMoveListener {
+public class Hydra implements SKeyListener, SMouseMoveListener {
 	public static void main(String[] args) {
 		//GlobalEventManager manager = new GlobalEventManager();
-		Window.create(new Hydraglider());
+		Window.create(new Hydra());
 		//manager.close();
 	}
+	
+	private static final boolean DEVPANEL = true;
+	private static Devpanel devpanel;
 	
 	private static final int RAY_MARCH_MAX = 2000;
 	private static final float PLAYER_HEIGHT = 1.58f;
@@ -60,6 +65,8 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 	private ReentrantLock mouse_lock;
 	private double mouse_dx;
 	private double mouse_dy;
+	Vector3f mouse_pos;
+	Vector3f mouse_vec;
 	
 	private static ReentrantLock entity_lock;
 	private static ReentrantLock affector_lock;
@@ -75,7 +82,7 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 	private LinkedList<Runnable> tasks;
 	private ReentrantLock task_lock;
 	
-	private float view_distance;
+	public static float view_distance;
 	
 	public static BiomeGen terrain_height;
 	
@@ -91,9 +98,9 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 	private static PriorityQueue<QuadMapMessage> qm_messages;
 	private static ReentrantLock qm_message_lock;
 	
-	private RailTrack rail;
+	private Railway rail;
 	
-	private Hydraglider() {
+	private Hydra() {
 		SKeyboard.addKeyListener(this);
 		SMouse.addMouseMoveListener(this);
 		mouse_lock = new ReentrantLock();
@@ -128,11 +135,6 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		qm_message_lock = new ReentrantLock();
 	}
 	
-	public void setAmbience(float r, float g, float b) {
-		ambient_color = new Vector4f(r, g, b, 1f);
-		distant_color = new Vector4f(r*1.04f, g*1.04f, b*1.04f, 1f).min(new Vector4f(1f, 1f, 1f, 1f));
-		glClearColor(r, g, b, 1f);
-	}
 	
 	public void init() {
 		setAmbience(0.0f, 0.2f, 0.3f);
@@ -145,7 +147,7 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		terrain_shader = new Shader("terrain", "terrain", "terrain");
 	
 		// Get the window size passed to glfwCreateWindow
-		float view_offset = 1f;
+		float view_offset = 1000f;
 		view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, view_offset * 0.4f, view_offset * 40000000f);
 		//view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, 0.01f, 1000000f);
 		view.pivot(-Math.PI*0.5);
@@ -251,9 +253,22 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		e.setShader(shader);
 		entities.add(e);
 		
-		rail = new RailTrack(0, 0, -(float)tau*0.25f);
+		rail = new Railway(0, 0, -(float)tau*0.25f);
 		rail.add(0);
-		for (int i = 0; i < 500; i++) {
+		for (int i = 0; i < 20; i++) {
+			rail.add(Math.random()*2-1);
+		}
+		rail.add(0, 0.1);
+		rail.add(0, -0.1);
+		for (int j = 0; j < 5; j++) {
+			for (int i = 0; i < 10; i++) {
+				rail.add(0.01, tau/20);
+			}
+			for (int i = 0; i < 10; i++) {
+				rail.add(-0.01, tau/20);
+			}
+		}
+		for (int i = 0; i < 20; i++) {
 			rail.add(Math.random()*2-1);
 		}
 		
@@ -272,22 +287,25 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		entities.add(e);
 		
 		e = new Entity();
-		e.addModels(ModelUtils.square_xy());
+		e.addModels(ModelUtils.grid_xy(100, 100));
 		e.scale(1);
 		e.setShader(shader); // water
 		entities.add(e);
 		water = e;
 		
 		
-		
-		
-		
 		for (int i = 0; i < 10; i++) {
 			spawnSectorTasker();			
 		}
+		
+		if (DEVPANEL) {
+			devpanel = new Devpanel();
+		}
+		
+		lt = System.nanoTime();
 	}
 	
-	private long lt = System.nanoTime();
+	private long lt;
 	private double dt() {
 		long ct = System.nanoTime();
 		long dt = ct-lt;
@@ -378,12 +396,12 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		inverse.m33(1f);
 		temp = view.world2view();
 		temp.invert(temp).mul(inverse, inverse);
-		pos = new Vector3f(inverse.m30(), inverse.m31(), inverse.m32());
-		vec = new Vector3f(inverse.m30(), inverse.m31(), inverse.m32());
-		vec.sub(view.pos());
-		vec.normalize();
-		SMouse.pos(pos);
-		SMouse.vec(vec);
+		mouse_pos = new Vector3f(inverse.m30(), inverse.m31(), inverse.m32());
+		mouse_vec = new Vector3f(inverse.m30(), inverse.m31(), inverse.m32());
+		mouse_vec.sub(view.pos());
+		mouse_vec.normalize();
+		SMouse.pos(mouse_pos);
+		SMouse.vec(mouse_vec);
 		
 		// light
 		float light_factor = 0.52f+0.48f*(float)Math.cos(t*0.1);
@@ -393,7 +411,7 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		//setAmbience(0.1f*light_factor, 0.2f*light_factor, 0.3f*light_factor);
 		light_direction.set((float)Math.sin(t*0.1), (float)Math.cos(t*0.1),1).normalize();
 		light_color.set(1.0f, 1.0f, 1.0f, 1f);
-		if (pos.z < 0) {
+		if (view.pos().z < 0) {
 			setAmbience(0.01f, 0.08f, 0.12f);
 		} else {
 			setAmbience(0.3f, 0.5f, 0.7f);			
@@ -405,8 +423,8 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		//System.out.println(qm_terrain.toString());
 		
 		if (SMouse.isPressed(GLFW_MOUSE_BUTTON_1)) {
-			Vector3f cursor_pos = new Vector3f(pos);
-			Vector3f step = new Vector3f(vec).mul(1f);
+			Vector3f cursor_pos = new Vector3f(mouse_pos);
+			Vector3f step = new Vector3f(mouse_vec).mul(1f);
 			int step_count = 0;
 			while (cursor_pos.z > terrain_height.get(cursor_pos.x, cursor_pos.y) && step_count < RAY_MARCH_MAX) {
 				cursor_pos.add(step);
@@ -447,13 +465,13 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 			Entity e = new Entity();
 			e.addModels(ModelUtils.get("cube"));
 			e.scale(1f);
-			e.setTranslation(pos.x(), pos.y(), pos.z());
+			e.setTranslation(mouse_pos.x(), mouse_pos.y(), mouse_pos.z());
 			e.setShader(shader);
 			entity_lock.lock();
 			entities.add(e);
 			entity_lock.unlock();
 			
-			VectorMover bt = new VectorMover(vec, 10f);
+			VectorMover bt = new VectorMover(mouse_vec, 10f);
 			bt.applyTo(e);
 			TimedLife td = new TimedLife(5);
 			td.applyTo(e);
@@ -500,7 +518,7 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 		Matrix4f transform = new Matrix4f();
 		qm_terrain.render(transform, true);
 
-		water.setTranslation(pos.x, pos.y, 0);
+		water.setTranslation(view.pos().x, view.pos().y, 0);
 		entity_lock.lock();
 		for (Iterator<Entity> itr = entities.iterator(); itr.hasNext();) {
 			Entity e = itr.next();
@@ -530,12 +548,26 @@ public class Hydraglider implements SKeyListener, SMouseMoveListener {
 			sb.append(s);
 			sb.append("\n");
 			System.out.println(sb.toString());
+			
+			if (DEVPANEL) {
+				devpanel.update();
+			}
 		}
 		
 	}
 	
-	Vector3f pos;
-	Vector3f vec;
+	public void close() {
+		if (DEVPANEL) {
+			devpanel.dispose();
+		}
+		ModelUtils.free();
+	}
+	
+	public void setAmbience(float r, float g, float b) {
+		ambient_color = new Vector4f(r, g, b, 1f);
+		distant_color = new Vector4f(r*1.04f, g*1.04f, b*1.04f, 1f).min(new Vector4f(1f, 1f, 1f, 1f));
+		glClearColor(r, g, b, 1f);
+	}
 
 	@Override
 	public void keyPress(int key) {

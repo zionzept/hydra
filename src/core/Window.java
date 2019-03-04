@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryStack;
 
-import aaa.Hydraglider;
+import aaa.Hydra;
 
 public class Window {
 
@@ -28,11 +28,11 @@ public class Window {
 	public static int w;
 	public static int h;
 
-	public static void create(Hydraglider hydraglider) {
+	public static void create(Hydra hydra) {
 
-		init(hydraglider);
-		glLoop(hydraglider);
-		eventLoop();
+		init_glfw(hydra);
+		init_and_run_gl_thread(hydra);
+		poll_window_event_loop();
 
 		// Free the window callbacks and destroy the window
 		glfwFreeCallbacks(window);
@@ -44,7 +44,7 @@ public class Window {
 		glfwSetErrorCallback(null).free();
 	}
 
-	private static void init(Hydraglider hydraglider) {
+	private static void init_glfw(Hydra hydra) {
 		// Setup an error callback. The default implementation
 		// will print the error message in System.err.
 		GLFWErrorCallback.createPrint(System.err).set();
@@ -62,7 +62,7 @@ public class Window {
 		glfwWindowHint(GLFW_SAMPLES, 16);
 		
 		// Create the window
-		window = glfwCreateWindow(1920, 1080, "Hydraglider!", NULL, NULL);
+		window = glfwCreateWindow(1920, 1080, "Hydra!", NULL, NULL);
 		if (window == NULL)
 			throw new RuntimeException("Failed to create the GLFW window");
 
@@ -108,7 +108,7 @@ public class Window {
 
 	}
 
-	private static void glLoop(Hydraglider hydraglider) {
+	private static void init_and_run_gl_thread(Hydra hydra) {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -138,13 +138,13 @@ public class Window {
 				//glfwWindowHint(GLFW_SAMPLES, 4);
 				//GL11.glEnable(GL_MULTISAMPLE);
 				
-				hydraglider.init();
+				hydra.init();
 				
 				glfwShowWindow(window);
 				
 				while (!shutdown) {
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-					hydraglider.update();
+					hydra.update();
 					
 					try {
 						Thread.sleep(8);
@@ -155,11 +155,12 @@ public class Window {
 					
 					glfwSwapBuffers(window); // swap the color buffers
 				}
+				hydra.close();
 			}
 		}).start();
 	}
 
-	private static void eventLoop() {
+	private static void poll_window_event_loop() {
 		// the window or has pressed the ESCAPE key.
 		while (!glfwWindowShouldClose(window)) {
 			// Poll for window events. The key callback above will only be

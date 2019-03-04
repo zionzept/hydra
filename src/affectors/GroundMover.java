@@ -3,7 +3,7 @@ package affectors;
 import org.joml.Vector3f;
 
 import aaa.Entity;
-import aaa.Hydraglider;
+import aaa.Hydra;
 
 public class GroundMover extends Affector {
 	
@@ -23,7 +23,7 @@ public class GroundMover extends Affector {
 	@Override
 	protected void update_internal(double dt, Entity e) {
 		Vector3f pos = new Vector3f(e.x(), e.y(), e.z());
-		Vector3f ground_target = new Vector3f(target.x, target.y, (float)Hydraglider.terrain_height.get(target.x, target.y));
+		Vector3f ground_target = new Vector3f(target.x, target.y, (float)Hydra.terrain_height.get(target.x, target.y));
 		Vector3f direction = new Vector3f();
 		ground_target.sub(pos, direction);
 		if (direction.length() < dt*speed) {
@@ -32,7 +32,7 @@ public class GroundMover extends Affector {
 		}
 		direction.normalize();
 		e.translate((float)(direction.x*dt*speed), (float)(direction.y*dt*speed), 0);
-		e.translate(0,  0,  (float)(Hydraglider.terrain_height.get(e.x(), e.y()) - Hydraglider.terrain_height.get(pos.x, pos.y)));
+		e.translate(0,  0,  (float)(Hydra.terrain_height.get(e.x(), e.y()) - Hydra.terrain_height.get(pos.x, pos.y)));
 	}
 
 }

@@ -10,7 +10,8 @@ import java.nio.IntBuffer;
 
 public class Util {
 
-	public static final double tau = Math.PI * 2;
+	public static final double pi = Math.PI;
+	public static final double tau = pi * 2;
 	
 	public static String loadAsString(String location) {
 		StringBuilder result = new StringBuilder();

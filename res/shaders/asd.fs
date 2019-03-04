@@ -22,7 +22,7 @@ uniform Material material;
 uniform vec3 light_direction;
 uniform vec4 light_color;
 uniform vec4 ambient_color;
-uniform vec4 distance_color;
+uniform vec4 distant_color;
 uniform vec3 view_pos;
 uniform float view_distance;
 
@@ -67,5 +67,5 @@ void main() {
 	float clarity = view_distance / (pow(zz, 1.2) + view_distance);
 	
 
-	fragColor =  mix(distance_color, surface_color, clarity);
+	fragColor =  mix(distant_color, surface_color, clarity);
 }

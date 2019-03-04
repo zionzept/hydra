@@ -7,7 +7,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import aaa.Entity;
-import aaa.Hydraglider;
+import aaa.Hydra;
 import core.SKeyboard;
 import gl.Material;
 import gl.Model;
@@ -31,7 +31,7 @@ public class QuadMapLeaf extends QuadMap {
 		this.position = position;
 		terrain = Entity.NULL;
 		message = new QuadMapMessage(this, x0, y0, res);
-		Hydraglider.addQMMessage(message);
+		Hydra.addQMMessage(message);
 		id = genID();
 	}
 	
@@ -45,7 +45,7 @@ public class QuadMapLeaf extends QuadMap {
 	}
 	
 	public void interrupt() {
-		Hydraglider.removeQMMessage(message);
+		Hydra.removeQMMessage(message);
 		if (split != null) {
 			split.interrupt();
 			split.delete();
@@ -71,7 +71,7 @@ public class QuadMapLeaf extends QuadMap {
 			QuadMap.modify_check_num(1);
 			baked_potato.addModels(potato.bake());
 			baked_potato.setMaterialOverride(Material.NULL);
-			baked_potato.setShader(Hydraglider.terrain_shader);
+			baked_potato.setShader(Hydra.terrain_shader);
 			terrain = baked_potato;
 			potato = null;
 			parent.ready_counter++;
