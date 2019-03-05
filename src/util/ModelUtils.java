@@ -43,7 +43,6 @@ public class ModelUtils {
 	
 	private static void initModelsFromFiles() {
 		models.put("sphere", ModelLoader.load("", "sphere", false));
-		models.put("quirk", ModelLoader.load("", "quirk", false));
 		models.put("tree", ModelLoader.load("", "tree", false));
 		
 		for (int i = 1; i <= 14; i++) {
@@ -56,7 +55,6 @@ public class ModelUtils {
 		models.put("khalifa", ModelLoader.load("buildings", "khalifa", false));
 		
 		models.put("rail", ModelLoader.load("trains", "Rails_OBJ", false));
-		models.put("train", ModelLoader.load("trains", "train", false));
 		models.put("locomotive", ModelLoader.load("trains", "locomotive", false));
 		
 		models.put("stone_tower", ModelLoader.load("", "stone_tower", false));
