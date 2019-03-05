@@ -85,9 +85,9 @@ public class BiomeGen implements F2D {
 		
 		Noise2D mountains = new Noise2D();
 		random = new Random(987123);
-		for (int i = 1; i <= 20; i++) {
+		for (int i = 1; i <= 30; i++) {
 			double size = 100 + Math.pow(1 + random.nextDouble() * i * 20, 2);
-			double amp = 0.1 + 0.1*random.nextDouble();
+			double amp = 0.1 + 0.1*random.nextDouble() + 1;
 			mountains.addComponent(size, size * amp, random.nextDouble());
 		}
 		mountains.setConstant(1000);

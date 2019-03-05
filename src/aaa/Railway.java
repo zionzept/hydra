@@ -15,28 +15,28 @@ import util.Util;
 
 public class Railway {
 
-	private static final float RAIL_LEN = 13f;
+	private static final double RAIL_LEN = 26;
 	
-	private float start_x;
-	private float start_y;
-	private float start_z;
-	private float start_r;
-	private float end_x;
-	private float end_y;
-	private float end_z;
-	private float end_r;
-	private float end_rise;
+	private double start_x;
+	private double start_y;
+	private double start_z;
+	private double start_r;
+	private double end_x;
+	private double end_y;
+	private double end_z;
+	private double end_r;
+	private double end_rise;
 	
 	private ArrayList<Entity> tracks;
 	
-	public Railway(float x, float y, float r) {
+	public Railway(double x, double y, double r) {
 		this.start_x = x;
 		this.start_y = y;
 		this.start_r = r;
 		this.end_x = x;
 		this.end_y = y;
 		this.end_r = r;
-		start_z = (float)Hydra.terrain_height.get(start_x, start_y);
+		start_z = Hydra.terrain_height.get(start_x, start_y);
 		end_z = start_z;
 		tracks = new ArrayList<Entity>();
 	}
@@ -44,25 +44,38 @@ public class Railway {
 	public void add(double dr) {
 		Entity e = new Entity();
 		e.addModels(ModelUtils.get("rail"));
-		
+		double new_end_x = 0;
+		double new_end_y = 0;
+		double new_end_z = 0;
 		end_r += dr;
-		float dx = RAIL_LEN * (float)Math.cos(end_r);
-		float dy = RAIL_LEN * (float)Math.sin(end_r);
+	
+		double len = RAIL_LEN * Math.cos(end_rise);
 		
-		float pos_x = end_x + dx;
-		float pos_y = end_y + dy;
+		new_end_x = end_x + len * Math.cos(end_r);
+		new_end_y = end_y + len * Math.sin(end_r);
+		new_end_z = Hydra.terrain_height.get(new_end_x, new_end_y);
 		
-		float new_end_x = pos_x + dx;
-		float new_end_y = pos_y + dy;
-		float new_end_z = (float)Hydra.terrain_height.get(new_end_x, new_end_y);
 		
-		end_rise = (float)Math.atan((new_end_z - end_z) / RAIL_LEN * 0.5);
+		int r = 0;
+		double hypo = Double.POSITIVE_INFINITY;
+		while (Math.abs((hypo / RAIL_LEN) - 1) > 1E-9 || r < 50) {
+			hypo = Math.hypot(len, new_end_z - end_z);
+			len *= RAIL_LEN / hypo;
+			new_end_x = end_x + len * Math.cos(end_r);
+			new_end_y = end_y + len * Math.sin(end_r);
+			new_end_z = Hydra.terrain_height.get(new_end_x, new_end_y);
+			r++;
+			System.out.println(len / RAIL_LEN + "\t" + RAIL_LEN / hypo);
+		}
 		
-		e.translate(pos_x, pos_y, 0.5f * (end_z + new_end_z));
-		e.rotate_y(-end_rise);
-		e.rotate_z(end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
+		end_rise = Math.atan((new_end_z - end_z) / len);
 		
-		e.scale(0.001f);
+		//end_rise = Math.atan((new_end_z - end_z) / len);
+		
+		e.translate((float)end_x, (float)end_y, (float)end_z);
+		e.rotate_y((float)-end_rise);
+		e.rotate_z((float)end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
+		
 		e.setShader(Shader.phong);
 		tracks.add(e);
 		
@@ -76,23 +89,18 @@ public class Railway {
 		e.addModels(ModelUtils.get("rail"));
 		
 		end_r += dr;
-		float dx = RAIL_LEN * (float)Math.cos(end_r);
-		float dy = RAIL_LEN * (float)Math.sin(end_r);
 		end_rise += drise;
-		dx *= Math.cos(end_rise);
-		dy *= Math.cos(end_rise);
-		float pos_x = end_x + dx;
-		float pos_y = end_y + dy;
+		double dx = RAIL_LEN * (float)(Math.cos(end_r)*Math.cos(end_rise));
+		double dy = RAIL_LEN * (float)(Math.sin(end_r)*Math.cos(end_rise));
 		
-		float new_end_x = pos_x + dx;
-		float new_end_y = pos_y + dy;
-		float new_end_z = end_z + (float)Math.sin(end_rise) * 2 * RAIL_LEN;
+		double new_end_x = end_x + dx;
+		double new_end_y = end_y + dy;
+		double new_end_z = end_z + (float)Math.sin(end_rise) * RAIL_LEN;
 		
-		e.translate(pos_x, pos_y, 0.5f * (end_z + new_end_z));
-		e.rotate_y(-end_rise); // it's probably rotated the wrong way since - here
-		e.rotate_z(end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
+		e.translate((float)end_x, (float)end_y, (float)end_z);
+		e.rotate_y((float)-end_rise); // it's probably rotated the wrong way since - here
+		e.rotate_z((float)end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
 		
-		e.scale(0.001f);
 		e.setShader(Shader.phong);
 		tracks.add(e);
 		
@@ -111,12 +119,12 @@ public class Railway {
 			i = tracks.size() - 1;
 			f = 1;
 		} else {
-			f = (p-i)*2-1f; 
+			f = p-i;
 		}
 		
 		Vector3f pos = tracks.get(i).getTranslation();
 		Vector3f rot = tracks.get(i).getRotation();
-		Vector3f d = new Vector3f(RAIL_LEN * (float)(Math.cos(rot.z)*Math.cos(rot.y)), RAIL_LEN * (float)(Math.sin(rot.z)*Math.cos(rot.y)), (float)Math.sin(-rot.y)*RAIL_LEN);
+		Vector3f d = new Vector3f((float)(RAIL_LEN * Math.cos(rot.z)*Math.cos(rot.y)), (float)(RAIL_LEN * Math.sin(rot.z)*Math.cos(rot.y)), (float)(RAIL_LEN * Math.sin(-rot.y)));
 		pos.add(d.mul(f));
 		return new Matrix3x2f(pos.x, rot.x, pos.y, rot.y, pos.z, rot.z);
 	}

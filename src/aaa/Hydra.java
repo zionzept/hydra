@@ -258,9 +258,9 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		entities.add(e);
 		
 		rail = new Railway(0, 0, 0);
-		rail.add(0);
-		rail.add(0);
-		rail.add(0);
+		for (int i = 0; i < 500; i++) {			
+			rail.add(0);
+		}
 		for (int i = 0; i < 20; i++) {
 			rail.add(Math.random()*2-1);
 		}
