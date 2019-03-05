@@ -12,12 +12,14 @@ out vec2 uv;
 out float zz;
 out vec3 frag_pos;
 out vec3 frag_normal;
+out vec3 model_pos;
 
 void main() {
 	uv = tex_coords;
 
 	frag_normal = (world * vec4(normal, 0)).xyz;
 	frag_pos = (world * vec4(vertex, 1)).xyz;
+	model_pos = vertex;
 
 	vec4 pos = view * vec4(frag_pos, 1);
 	zz = pos.z;

@@ -46,9 +46,9 @@ public class Railway {
 		e.addModels(ModelUtils.get("rail"));
 		
 		end_r += dr;
-		float dx = RAIL_LEN * (float)-Math.sin(end_r);
-		float dy = RAIL_LEN * (float)Math.cos(end_r);
-		 
+		float dx = RAIL_LEN * (float)Math.cos(end_r);
+		float dy = RAIL_LEN * (float)Math.sin(end_r);
+		
 		float pos_x = end_x + dx;
 		float pos_y = end_y + dy;
 		
@@ -60,7 +60,7 @@ public class Railway {
 		
 		e.translate(pos_x, pos_y, 0.5f * (end_z + new_end_z));
 		e.rotate_y(-end_rise);
-		e.rotate_z(end_r + (float)Util.tau * 0.25f); // need pre +dr rotation at start, and like this and end of rail, to make curve
+		e.rotate_z(end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
 		
 		e.scale(0.001f);
 		e.setShader(Shader.phong);
@@ -76,8 +76,8 @@ public class Railway {
 		e.addModels(ModelUtils.get("rail"));
 		
 		end_r += dr;
-		float dx = RAIL_LEN * (float)-Math.sin(end_r);
-		float dy = RAIL_LEN * (float)Math.cos(end_r);
+		float dx = RAIL_LEN * (float)Math.cos(end_r);
+		float dy = RAIL_LEN * (float)Math.sin(end_r);
 		end_rise += drise;
 		dx *= Math.cos(end_rise);
 		dy *= Math.cos(end_rise);
@@ -90,7 +90,7 @@ public class Railway {
 		
 		e.translate(pos_x, pos_y, 0.5f * (end_z + new_end_z));
 		e.rotate_y(-end_rise); // it's probably rotated the wrong way since - here
-		e.rotate_z(end_r + (float)Util.tau * 0.25f); // need pre +dr rotation at start, and like this and end of rail, to make curve
+		e.rotate_z(end_r); // need pre +dr rotation at start, and like this and end of rail, to make curve
 		
 		e.scale(0.001f);
 		e.setShader(Shader.phong);

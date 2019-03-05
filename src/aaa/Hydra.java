@@ -18,6 +18,7 @@ import Meff.BiomeGen;
 import affectors.Affector;
 import affectors.RailMover;
 import affectors.TimedLife;
+import affectors.TrainMover;
 import affectors.VectorMover;
 import attributes.Enabler;
 import core.SKeyListener;
@@ -44,6 +45,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		Window.create(new Hydra());
 		//manager.close();
 	}
+	
+	public static final double g = 8.0;
 	
 	private static final boolean DEVPANEL = true;
 	private static Devpanel devpanel;
@@ -147,7 +150,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		terrain_shader = new Shader("terrain", "terrain", "terrain");
 	
 		// Get the window size passed to glfwCreateWindow
-		float view_offset = 1000f;
+		float view_offset = 1;
 		view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, view_offset * 0.4f, view_offset * 40000000f);
 		//view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, 0.01f, 1000000f);
 		view.pivot(-Math.PI*0.5);
@@ -230,6 +233,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		view.move(spawn.x, spawn.y, spawn.z);
 		
 		Entity e;
+		Affector a;
 		
 		//Entities.createStoneTower(0, 0);
 		EntityFactory.createSpawner(10, 200, 0);
@@ -253,7 +257,9 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		e.setShader(shader);
 		entities.add(e);
 		
-		rail = new Railway(0, 0, -(float)tau*0.25f);
+		rail = new Railway(0, 0, 0);
+		rail.add(0);
+		rail.add(0);
 		rail.add(0);
 		for (int i = 0; i < 20; i++) {
 			rail.add(Math.random()*2-1);
@@ -268,23 +274,53 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 				rail.add(-0.01, tau/20);
 			}
 		}
+		/*
 		for (int i = 0; i < 20; i++) {
 			rail.add(Math.random()*2-1);
 		}
+		for (int i = 0; i < 60; i++) {
+			rail.add(2);
+			rail.add(-2);
+		}
+		for (int j = 0; j < 30; j++) {
+			for (int i = 0; i < 2; i++) {
+				rail.add(0.2, tau/4);
+			}
+			for (int i = 0; i < 2; i++) {
+				rail.add(-0.2, tau/4);
+			}
+		}
+		for (int i = 0; i < 100; i++) {
+			rail.add(Math.random()*2-1);
+		}
+		for (int i = 0; i < 300; i++) {
+			rail.add(0);
+		}
+		*/
 		
-		
-		ModelUtils.get("train").getFirst().setMaterial(Material.plain);
 		e = new Entity();
-		e.addModels(ModelUtils.get("train"));
-		e.translate(0,  0.06f,  (float)terrain_height.get(0, 0.063f) + 0.215f);
-		e.rotate_z((float)Math.PI);
-		e.rotate_z((float)-Math.PI*0.5f);
-		e.scale(0.0255f);
+		e.addModels(ModelUtils.get("locomotive"));
 		e.setShader(shader);
-		RailMover a = new RailMover(rail, 0, 26, (float)tau*0.25f, 0.215f);
+		a = new RailMover(rail, 1, 0.1f, 0, 0);
 		a.applyTo(e);
 		affectors.add(a);
-		entities.add(e);
+		//entities.add(e);
+		
+		e = new Entity();
+		e.addModels(ModelUtils.get("locomotive"));
+		e.setShader(shader);
+		Train t = new Train(e, 5000);
+		a = new TrainMover(t, rail, 0, 0.1f);
+		a.applyTo(t);
+		affectors.add(a);
+		entities.add(t);
+		
+		for (int i = 0; i < 9; i++) {
+			e = new Entity();
+			e.addModels(ModelUtils.get("locomotive"));
+			e.setShader(shader);
+			t.add(e, 5000, 0.5f);
+		}
 		
 		e = new Entity();
 		e.addModels(ModelUtils.grid_xy(100, 100));
@@ -292,7 +328,6 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		e.setShader(shader); // water
 		entities.add(e);
 		water = e;
-		
 		
 		for (int i = 0; i < 10; i++) {
 			spawnSectorTasker();			
@@ -414,7 +449,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		if (view.pos().z < 0) {
 			setAmbience(0.01f, 0.08f, 0.12f);
 		} else {
-			setAmbience(0.3f, 0.5f, 0.7f);			
+			setAmbience(0.4f, 0.5f, 0.6f);			
 		}
 		
 		

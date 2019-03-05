@@ -207,8 +207,9 @@ public class ModelLoader {
 					sc.nextLine();
 					break;
 				case "newmtl":
-					current_mtl = new Material();
-					materials.put(sc.next(), current_mtl);
+					String name = sc.next();
+					current_mtl = new Material(name);
+					materials.put(name, current_mtl);
 					break;
 				case "ns":
 					current_mtl.shininess(sc.nextFloat());
@@ -241,7 +242,18 @@ public class ModelLoader {
 					path = sc.nextLine().trim().split("\\\\");
 					current_mtl.emission_tex(TexBase.get(path[path.length - 1]));
 					break;
-					
+				case "map_bump":
+					if (sc.next().equals("-bm")) {
+						float scale = sc.nextFloat();
+						String seed_string = sc.nextLine();
+						System.out.println(seed_string);
+						int seed = seed_string.hashCode();
+						current_mtl.bump_noise(scale, seed);
+					} else {
+						sc.nextLine();
+						System.out.println("no support for bump map by texture");
+					}
+					break;
 					
 					
 				case "ni":

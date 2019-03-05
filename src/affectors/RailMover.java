@@ -44,6 +44,6 @@ public class RailMover extends Affector {
 		Matrix3x2f stuff = rail.getPosRot(this.pos);
 		
 		e.setTranslation(stuff.m00, stuff.m10, stuff.m20 + z_bias);
-		e.setRotation(stuff.m11, stuff.m01, stuff.m21 + rot_bias); // rotation bias mess up rotation on x and y
+		e.setRotation(stuff.m01, stuff.m11, stuff.m21 + rot_bias); // rotation bias mess up rotation on x and y
 	}
 }

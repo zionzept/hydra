@@ -57,6 +57,7 @@ public class ModelUtils {
 		
 		models.put("rail", ModelLoader.load("trains", "Rails_OBJ", false));
 		models.put("train", ModelLoader.load("trains", "train", false));
+		models.put("locomotive", ModelLoader.load("trains", "locomotive", false));
 		
 		models.put("stone_tower", ModelLoader.load("", "stone_tower", false));
 		models.put("spawner", ModelLoader.load("", "spawner", false));

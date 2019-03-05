@@ -112,10 +112,10 @@ public class EntityFactory {
 		Entity e = new Entity();
 		e.addModels(ModelUtils.get("tree"));
 		if (!troll) {
-			e.setMaterialOverride(new Material(new Vector4f(0f,(float)Math.random(),0f, 1f), 
+			e.setMaterialOverride(new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
 					new Vector4f((float)Math.random(),0f,(float)Math.random(), 1f), 10));
 		} else {
-			e.setMaterialOverride(new Material(new Vector4f(0f,(float)Math.random(),0f, 1f), 
+			e.setMaterialOverride(new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
 					new Vector4f((float)Math.random(),1f,(float)Math.random(), 1f), 10));
 		}
 		e.setTranslation((float)x, (float)y, (float)Hydra.terrain_height.get(x, y) - 1f);

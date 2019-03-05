@@ -4,11 +4,13 @@ import org.joml.Vector4f;
 
 public class Material {
 	
-	public static Material plain = new Material(new Vector4f(0.5f, 0.5f, 0.5f, 1f), 10f);
-	public static final Material NULL = new Material() {
+	public static Material plain = new Material("plain-material", new Vector4f(0.5f, 0.5f, 0.5f, 1f), 10f);
+	public static final Material NULL = new Material("null-material") {
 		@Override
 		public void materialize(Shader shader) {}
 	};
+	
+	private String name;
 	
 	Vector4f ambient;
 	Vector4f diffuse;
@@ -21,20 +23,27 @@ public class Material {
 	Texture specular_tex;
 	Texture emission_tex;
 	
-	public Material() {
-		
+	private int bump_mode; // 0 for none, 1 for noise, 2 for tex
+	private float bump_scale;
+	private float bump_seed; // used in noise
+	private Texture bump_tex;
+	
+	public Material(String name) {
+		this.name = name;
 	}
 	
-	public Material(Vector4f color, float shininess) {
-		ambient = color;
+	public Material(String name, Vector4f color, float shininess) {
+		this.name = name;
+		ambient = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 		diffuse = color;
 		specular = color;
 		emission = new Vector4f(0f);
 		this.shininess = shininess;
 	}
 	
-	public Material(Vector4f color, Vector4f emission, float shininess) {
-		ambient = color;
+	public Material(String name, Vector4f color, Vector4f emission, float shininess) {
+		this.name = name;
+		ambient = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 		diffuse = color;
 		specular = color;
 		this.emission = emission;
@@ -75,6 +84,23 @@ public class Material {
 			shader.setUniform("material.emission_mapped", true);
 		} else {
 			shader.setUniform("material.emission_mapped", false);
+		}
+		switch(bump_mode) {
+		case 1:
+			shader.setUniform("material.bump_noise_scale", bump_scale);
+			shader.setUniform("material.bump_noise_seed", bump_seed);
+			shader.setUniform("material.bump_noise", true);
+			shader.setUniform("material.bump_tex", false);
+			break;
+		case 2:
+			// not implemented
+			shader.setUniform("material.bump_noise", false);
+			shader.setUniform("material.bump_tex", false);
+			break;
+		default:
+			shader.setUniform("material.bump_noise", false);
+			shader.setUniform("material.bump_tex", false);
+			break;
 		}
 	}
 	
@@ -120,5 +146,11 @@ public class Material {
 
 	public void emission_tex(Texture tex) {
 		emission_tex = tex;
+	}
+	
+	public void bump_noise(float scale, float seed) {
+		bump_mode = 1;
+		bump_scale = scale;
+		bump_seed = seed;
 	}
 }
