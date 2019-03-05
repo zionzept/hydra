@@ -55,7 +55,6 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 	private static final float PLAYER_HEIGHT = 1.58f;
 	
 	public static View view;
-	private Shader shader;
 	public static Shader terrain_shader;
 	
 	private static LinkedList<Entity> entities;
@@ -145,8 +144,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		TEST.pre();
 		//Model grid = 
 		
-		Shader.phong = new Shader("default", "asd", "asd");
-		shader = Shader.phong;
+		Shader.phong = new Shader("phong", "phong", "phong");
 		terrain_shader = new Shader("terrain", "terrain", "terrain");
 	
 		// Get the window size passed to glfwCreateWindow
@@ -158,17 +156,17 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		Runnable setUniforms = new Runnable() {
 			@Override
 			public void run() {
-				shader.setUniform("view", view.world2Projection());
-				shader.setUniform("view_pos", view.pos());
-				shader.setUniform("sampler", 0);
-				shader.setUniform("light_direction", light_direction);
-				shader.setUniform("light_color", light_color);
-				shader.setUniform("ambient_color", ambient_color);
-				shader.setUniform("distant_color", distant_color);
-				shader.setUniform("view_distance", view_distance);
+				Shader.phong.setUniform("view", view.world2Projection());
+				Shader.phong.setUniform("view_pos", view.pos());
+				Shader.phong.setUniform("sampler", 0);
+				Shader.phong.setUniform("light_direction", light_direction);
+				Shader.phong.setUniform("light_color", light_color);
+				Shader.phong.setUniform("ambient_color", ambient_color);
+				Shader.phong.setUniform("distant_color", distant_color);
+				Shader.phong.setUniform("view_distance", view_distance);
 			}
 		};
-		shader.setUniforms(setUniforms);
+		Shader.phong.setUniforms(setUniforms);
 		
 		setUniforms = new Runnable() {
 			@Override
@@ -244,7 +242,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 				e.addModels(ModelUtils.get("building_a", (int)(Math.random()*14)+1));
 				e.scale(1f);
 				e.translate(x, y, (float)terrain_height.get(x, y));
-				e.setShader(shader);
+				e.setShader(Shader.phong);
 				entities.add(e);
 				if (y%3 == 0) y+=20;
 			}
@@ -254,7 +252,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		e = new Entity();
 		e.addModels(ModelUtils.get("khalifa"));
 		e.translate(400, 1100, (float)terrain_height.get(400, 1100));
-		e.setShader(shader);
+		e.setShader(Shader.phong);
 		entities.add(e);
 		
 		rail = new Railway(0, 0, 0);
@@ -300,7 +298,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		
 		e = new Entity();
 		e.addModels(ModelUtils.get("locomotive"));
-		e.setShader(shader);
+		e.setShader(Shader.phong);
 		a = new RailMover(rail, 1, 0.1f, 0, 0);
 		a.applyTo(e);
 		affectors.add(a);
@@ -308,7 +306,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		
 		e = new Entity();
 		e.addModels(ModelUtils.get("locomotive"));
-		e.setShader(shader);
+		e.setShader(Shader.phong);
 		Train t = new Train(e, 5000);
 		a = new TrainMover(t, rail, 0, 0.1f);
 		a.applyTo(t);
@@ -318,14 +316,14 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		for (int i = 0; i < 9; i++) {
 			e = new Entity();
 			e.addModels(ModelUtils.get("locomotive"));
-			e.setShader(shader);
+			e.setShader(Shader.phong);
 			t.add(e, 5000, 0.5f);
 		}
 		
 		e = new Entity();
 		e.addModels(ModelUtils.grid_xy(100, 100));
 		e.scale(1);
-		e.setShader(shader); // water
+		e.setShader(Shader.phong); // water
 		entities.add(e);
 		water = e;
 		
@@ -501,7 +499,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 			e.addModels(ModelUtils.get("cube"));
 			e.scale(1f);
 			e.setTranslation(mouse_pos.x(), mouse_pos.y(), mouse_pos.z());
-			e.setShader(shader);
+			e.setShader(Shader.phong);
 			entity_lock.lock();
 			entities.add(e);
 			entity_lock.unlock();
