@@ -16,22 +16,21 @@ public class View {
 	
 	private Matrix4f view2projection;
 	
-	public View(float fov, float aspect, float near, float far) {
+	public View() {
 		pos = new Vector3f();
-		view2projection = new Matrix4f().perspective(fov, aspect, near, far);
 	}
 	
 	public Vector3f pos() {
 		return pos;
 	}
 	
-	public Matrix4f world2Projection() {
+	public Matrix4f aworld2Projection() {
 		Matrix4f world2projection = new Matrix4f();
 		view2projection.mul(world2view(), world2projection);
 		return world2projection;
 	}
 	
-	public Matrix4f view2Projection() {
+	public Matrix4f aview2Projection() {
 		return view2projection;
 	}
 	

@@ -23,7 +23,7 @@ public class QuadMapLeaf extends QuadMap {
 	
 	private int id;
 	
-	
+	private boolean in_bounds;
 	
 	
 	public QuadMapLeaf(QuadMapBranch parent, int position, double x0, double y0, int res) {
@@ -85,6 +85,7 @@ public class QuadMapLeaf extends QuadMap {
 			} else {
 				if (out_of_bounds(x, y)) {
 					interrupt();
+					in_bounds = false;
 				} else {
 					split.validate(x, y, dt);
 					if (split.ready_counter == 4) {
@@ -92,6 +93,7 @@ public class QuadMapLeaf extends QuadMap {
 						split = null;
 						delete();
 					}
+					in_bounds = true;
 				}
 			}
 		}
@@ -104,17 +106,20 @@ public class QuadMapLeaf extends QuadMap {
 	
 	@Override
 	public void render(Matrix4f transform, boolean far) {
-		if (res < 2 && SKeyboard.isPressed(GLFW.GLFW_KEY_X)) {
-
-			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-		}
-		if (res >= FAR_LIMIT == far) {
-			float alpha = 1;
-			shader.setUniform("alpha", alpha);
+		
+		if (far) {
 			terrain.render(transform);
 		}
-		if (res < 2) {
-			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+		if (!far && (res < FAR_LIMIT || in_bounds)) {
+			if (res < 2 && SKeyboard.isPressed(GLFW.GLFW_KEY_X)) {
+				GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+			}
+			if (res >= FAR_LIMIT == far) {
+				terrain.render(transform);
+			}
+			if (res < 2) {
+				GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+			}
 		}
 	}
 	

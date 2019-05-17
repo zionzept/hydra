@@ -246,7 +246,6 @@ public class ModelLoader {
 					if (sc.next().equals("-bm")) {
 						float scale = sc.nextFloat();
 						String seed_string = sc.nextLine();
-						System.out.println(seed_string);
 						int seed = seed_string.hashCode();
 						current_mtl.bump_noise(scale, seed);
 					} else {

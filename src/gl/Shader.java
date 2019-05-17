@@ -14,11 +14,21 @@ public class Shader {
 	public static Shader phong;
 	
 	private int progID;
+	private int vertID;
+	private int fragID;
 	private String name;
+	private String vertPath;
+	private String fragPath;
 	private Runnable setUniforms;
 	
 	public Shader(String name, String vertPath, String fragPath) {
 		this.name = name + " (" + vertPath + " : " + fragPath + ")";
+		this.vertPath = vertPath;
+		this.fragPath = fragPath;
+		compile();
+	}
+	
+	private void compile() {
 		String vert = Util.loadAsString("res/shaders/" + vertPath + ".vs");
 		String frag = Util.loadAsString("res/shaders/" + fragPath + ".fs");
 		
@@ -52,6 +62,17 @@ public class Shader {
 			System.err.println("Failed to link shader program");
 			System.err.println(glGetProgramInfoLog(progID));
 		}
+	}
+	
+	public void free() {
+		glDeleteShader(vertID);
+		glDeleteShader(fragID);
+		glDeleteProgram(progID);
+	}
+	
+	public void recompile() {
+		free();
+		compile();
 	}
 	
 	public void setUniforms(Runnable run) {

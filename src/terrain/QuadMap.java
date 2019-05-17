@@ -9,7 +9,7 @@ public abstract class QuadMap {
 	
 	public static final int POLYS = 64;
 	public static final int MAX_QUALITY = 0;
-	public static final int FAR_LIMIT = 8;
+	public static final int FAR_LIMIT = 6;
 	
 	public static Shader shader;
 	public static Texture grass_tex;

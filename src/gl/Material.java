@@ -4,8 +4,8 @@ import org.joml.Vector4f;
 
 public class Material {
 	
-	public static Material plain = new Material("plain-material", new Vector4f(0.5f, 0.5f, 0.5f, 1f), 10f);
-	public static final Material NULL = new Material("null-material") {
+	public static Material plain = new Material("plain", new Vector4f(0.5f, 0.5f, 0.5f, 1f), 10f);
+	public static final Material NULL = new Material("null") {
 		@Override
 		public void materialize(Shader shader) {}
 	};
@@ -152,5 +152,15 @@ public class Material {
 		bump_mode = 1;
 		bump_scale = scale;
 		bump_seed = seed;
+	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
 	}
 }

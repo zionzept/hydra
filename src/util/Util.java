@@ -12,11 +12,11 @@ public class Util {
 
 	public static final double pi = Math.PI;
 	public static final double tau = pi * 2;
+	public static final double mu = pi / 2;
 	
 	public static String loadAsString(String location) {
 		StringBuilder result = new StringBuilder();
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(location));
+		try (BufferedReader reader = new BufferedReader(new FileReader(location))) {
 			String buffer;
 			while((buffer = reader.readLine()) != null) {
 				result.append(buffer);

@@ -8,13 +8,12 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JFrame;
-
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 
-import Meff.BiomeGen;
+import meff.BiomeGen;
 import affectors.Affector;
 import affectors.RailMover;
 import affectors.TimedLife;
@@ -37,7 +36,7 @@ import terrain.QuadMapRoot;
 import util.ModelUtils;
 import util.Potato;
 
-import static util.Util.tau;
+import static util.Util.*;
 
 public class Hydra implements SKeyListener, SMouseMoveListener {
 	public static void main(String[] args) {
@@ -46,7 +45,9 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		//manager.close();
 	}
 	
-	public static final double g = 8.0;
+	public static double g = 8.0;
+	
+	private static float fov = (float)(80d / 180d * Math.PI);
 	
 	private static final boolean DEVPANEL = true;
 	private static Devpanel devpanel;
@@ -81,8 +82,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 	private Vector4f ambient_color;
 	private Vector4f distant_color;
 	
-	private LinkedList<Runnable> tasks;
-	private ReentrantLock task_lock;
+	private static LinkedList<Runnable> tasks;
+	private static ReentrantLock task_lock;
 	
 	public static float view_distance;
 	
@@ -101,6 +102,16 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 	private static ReentrantLock qm_message_lock;
 	
 	private Railway rail;
+	private Shader rail_shader;
+	
+	public static double turn_bias;
+	public static double rise_bias;
+	public static double swirl_bias;
+	
+	private Matrix4f near_projection;
+	private Matrix4f far_projection;
+	private Matrix4f projection;
+	private Matrix4f world2projection;
 	
 	private Hydra() {
 		SKeyboard.addKeyListener(this);
@@ -144,21 +155,27 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		TEST.pre();
 		//Model grid = 
 		
-		Shader.phong = new Shader("phong", "phong", "phong");
-		terrain_shader = new Shader("terrain", "terrain", "terrain");
+		Shader.phong = new Shader("phong_shader", "phong", "phong");
+		terrain_shader = new Shader("terrain_shader", "terrain", "terrain");
+		rail_shader = new Shader("rail_shader", "rails", "phong");
 	
 		// Get the window size passed to glfwCreateWindow
-		float view_offset = 1;
-		view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, view_offset * 0.4f, view_offset * 40000000f);
+		view = new View();
 		//view = new View((float)(80d / 180d * Math.PI), (float)Window.w / Window.h, 0.01f, 1000000f);
 		view.pivot(-Math.PI*0.5);
+		
+		float ar = (float)Window.w / Window.h;
+		near_projection = new Matrix4f().perspective(fov, ar, 1f/64f, 1024f*4f);
+		far_projection = new Matrix4f().perspective(fov, ar, 1024f, 1024f*1024f*1024f);
+		projection = near_projection;
+		world2projection = new Matrix4f();
 		
 		Runnable setUniforms = new Runnable() {
 			@Override
 			public void run() {
-				Shader.phong.setUniform("view", view.world2Projection());
+				
+				Shader.phong.setUniform("view", world2projection);
 				Shader.phong.setUniform("view_pos", view.pos());
-				Shader.phong.setUniform("sampler", 0);
 				Shader.phong.setUniform("light_direction", light_direction);
 				Shader.phong.setUniform("light_color", light_color);
 				Shader.phong.setUniform("ambient_color", ambient_color);
@@ -171,7 +188,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		setUniforms = new Runnable() {
 			@Override
 			public void run() {
-				terrain_shader.setUniform("view", view.world2Projection());
+				terrain_shader.setUniform("view", world2projection);
 				terrain_shader.setUniform("view_pos", view.pos());
 				terrain_shader.setUniform("light_direction", light_direction);
 				terrain_shader.setUniform("light_color", light_color);
@@ -185,6 +202,20 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		QuadMap.shader = terrain_shader;
 		QuadMap.grass_tex = new Texture("grass.png");
 		
+		
+		setUniforms = new Runnable() {
+			@Override
+			public void run() {
+				rail_shader.setUniform("view", world2projection);
+				rail_shader.setUniform("view_pos", view.pos());
+				rail_shader.setUniform("light_direction", light_direction);
+				rail_shader.setUniform("light_color", light_color);
+				rail_shader.setUniform("ambient_color", ambient_color);
+				rail_shader.setUniform("distant_color", distant_color);
+				rail_shader.setUniform("view_distance", view_distance);
+			}
+		};
+		rail_shader.setUniforms(setUniforms);
 		/*
 		terrain_height = new F2Da();
 		Random random = new Random(2999);
@@ -215,7 +246,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		
 		
 		
-		int size = 24;
+		int size = 14; // 24
 		qm_terrain = new QuadMapRoot(0, -0.5*QuadMap.POLYS*(1<<size), -0.5*QuadMap.POLYS*(1<<size), size);
 		
 		/*terrain_height.addSin(2, 0.17, 0.01);
@@ -236,6 +267,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		//Entities.createStoneTower(0, 0);
 		EntityFactory.createSpawner(10, 200, 0);
 		
+		/*
 		for (int x = 0; x < 800; x+= 20) {
 			for (int y= 600; y < 1000; y+= 20) {
 				e = new Entity();
@@ -248,6 +280,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 			}
 			if (x%3 == 0) x+=20;
 		}
+		*/
 		
 		e = new Entity();
 		e.addModels(ModelUtils.get("khalifa"));
@@ -255,23 +288,63 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		e.setShader(Shader.phong);
 		entities.add(e);
 		
-		rail = new Railway(0, 0, 0);
-		for (int i = 0; i < 500; i++) {			
+		System.out.println("railing");
+		rail = new Railway(10, 10, 0, rail_shader);
+		/*for (int i = 0; i < 50; i++) {			
 			rail.add(0);
+		}*/
+		rail.add(0.01, 0.01);
+		
+		// air rails
+	//	for (int dturn = -1; dturn <= 1; dturn++) {
+	//		for (int drise = -1; drise <= 1; drise++) {
+	//			for (int srise = -1; srise <= 1; srise++) {
+	//				for (int sswirl = -1; sswirl <= 1; sswirl++) {
+	//					rail.addtp(drise*40, sswirl*40, srise*40 + 150, 0, srise*mu/2, sswirl*mu/2, dturn*mu/4, drise*mu/4);					
+	//				}
+	//			}
+	//		}
+	//	}
+		
+		
+		
+		/*
+		rail.add(0.1, tau/4);
+		rail.add(0.1, -tau/4);
+		rail.add(-0.1, -tau/4);
+		rail.add(-0.1, tau/4);
+		for (int i = 0; i < 2; i++) {
+			rail.add(tau/2, mu*(i+1));
+			rail.add(-tau/2, -mu*(i+1));
 		}
-		for (int i = 0; i < 20; i++) {
-			rail.add(Math.random()*2-1);
+		for (int i = 0; i < 10; i++) {
+			rail.add(tau/4, 0.1);
 		}
-		rail.add(0, 0.1);
-		rail.add(0, -0.1);
+		rail.add(0.1, tau/4);
+		*/
+		rail.add(0.01, 0.01);
+		/*
+		for (int j = 0; j < ; j++) {
+			for (int i = 0; i < 4; i++) {
+				rail.add(Math.random()*2);
+			}
+			for (int i = 0; i < 4; i++) {
+				rail.add(Math.random()*2);
+			}
+		}
+		*/
+		/*
+		rail.add(0.1, tau/4);
+		rail.add(tau/4, 0);
 		for (int j = 0; j < 5; j++) {
-			for (int i = 0; i < 10; i++) {
-				rail.add(0.01, tau/20);
+			for (int i = 0; i < 4; i++) {
+				rail.add(0.2, tau/8);
 			}
-			for (int i = 0; i < 10; i++) {
-				rail.add(-0.01, tau/20);
+			for (int i = 0; i < 4; i++) {
+				rail.add(-0.2, tau/8);
 			}
 		}
+		*/
 		/*
 		for (int i = 0; i < 20; i++) {
 			rail.add(Math.random()*2-1);
@@ -296,36 +369,45 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		}
 		*/
 		
+		/*
 		e = new Entity();
 		e.addModels(ModelUtils.get("locomotive"));
 		e.setShader(Shader.phong);
 		a = new RailMover(rail, 1, 0.1f, 0, 0);
 		a.applyTo(e);
 		affectors.add(a);
-		//entities.add(e);
+		entities.add(e);
+		*/
 		
+		
+		// TRAIN
+		/*
 		e = new Entity();
 		e.addModels(ModelUtils.get("locomotive"));
 		e.setShader(Shader.phong);
 		Train t = new Train(e, 5000);
-		a = new TrainMover(t, rail, 0, 0.1f);
+		a = new TrainMover(t, rail, 0, 0.1f); // Todo: why is t here when it's on next line
 		a.applyTo(t);
 		affectors.add(a);
 		entities.add(t);
 		
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 2; i++) {
 			e = new Entity();
 			e.addModels(ModelUtils.get("locomotive"));
 			e.setShader(Shader.phong);
 			t.add(e, 5000, 0.5f);
 		}
 		
+		*/
+		
+		/*
 		e = new Entity();
 		e.addModels(ModelUtils.grid_xy(100, 100));
 		e.scale(1);
 		e.setShader(Shader.phong); // water
 		entities.add(e);
 		water = e;
+		*/
 		
 		for (int i = 0; i < 10; i++) {
 			spawnSectorTasker();			
@@ -336,6 +418,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		}
 		
 		lt = System.nanoTime();
+		
+		
 	}
 	
 	private long lt;
@@ -354,7 +438,7 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 	
 	float mz = 2f;
 	
-	double move_speed = 100;
+	double move_speed = 10;
 	private double report_time = 1;
 	private double t = 0;
 	private double z_speed = 0;
@@ -362,11 +446,14 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 	
 	public void update() {
 		// time
+		
 		double dt = dt();
 		report_time -= dt;
 		t += dt;
 		
+		
 		// tasks
+		
 		task_lock.lock();
 		while (!tasks.isEmpty()) {
 			Runnable task = tasks.removeFirst();
@@ -374,7 +461,10 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		}
 		task_lock.unlock();
 		
+		
 		// movement
+		
+		
 		boolean ground = onGround();
 		Vector3f old_xy = view.pos();
 		if (SKeyboard.isPressed(GLFW_KEY_W))
@@ -413,6 +503,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 			z_speed = 0;
 		}
 		
+		
+		
 		// update mouse vectors
 		double mx = SMouse.getX() / (Window.w-1) * 2 - 1;
 		double my = SMouse.getY() / (Window.h-1) * -2 + 1;
@@ -422,7 +514,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		mouse2projection.m31((float)my);
 		mouse2projection.m32(mz); // not needed?
 		Matrix4f inverse = new Matrix4f();
-		view.view2Projection().invert(temp).mul(mouse2projection, inverse);
+		
+		world2projection.invert(temp).mul(mouse2projection, inverse);
 		inverse.m30(inverse.m30() * mz);
 		inverse.m31(inverse.m31() * mz);
 		inverse.m32((float)-mz);
@@ -435,6 +528,8 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		mouse_vec.normalize();
 		SMouse.pos(mouse_pos);
 		SMouse.vec(mouse_vec);
+		
+		
 		
 		// light
 		float light_factor = 0.52f+0.48f*(float)Math.cos(t*0.1);
@@ -452,8 +547,12 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		
 		
 		//wut
+		
 		int qq = qm_terrain.validate(new_xy.x(), new_xy.y(), dt);
+		
 		//System.out.println(qm_terrain.toString());
+		
+		// mouse click
 		
 		if (SMouse.isPressed(GLFW_MOUSE_BUTTON_1)) {
 			Vector3f cursor_pos = new Vector3f(mouse_pos);
@@ -494,6 +593,9 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 			//entity.setTranslation(cursor_pos.x, cursor_pos.y, cursor_pos.z);		old cursor tracking	
 		}
 		
+		
+		
+		
 		if (SKeyboard.isPressed(GLFW_KEY_B)) {
 			Entity e = new Entity();
 			e.addModels(ModelUtils.get("cube"));
@@ -513,6 +615,15 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 			affectors.add(td);
 			affector_lock.unlock();
 		}
+		
+		
+		
+		
+		
+		
+		// objects logic
+		
+		
 		
 		script_lock.lock();
 		for (Iterator<Script> itr = scripts.iterator(); itr.hasNext();) {
@@ -548,10 +659,21 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		}
 		enabler_lock.unlock();
 		
+		
+		
+		
 		Matrix4f transform = new Matrix4f();
+		projection = far_projection;
+		projection.mul(view.world2view(), world2projection);
 		qm_terrain.render(transform, true);
-
-		water.setTranslation(view.pos().x, view.pos().y, 0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		projection = near_projection;
+		projection.mul(view.world2view(), world2projection);
+		qm_terrain.render(transform, false);
+		
+		
+		
+		
 		entity_lock.lock();
 		for (Iterator<Entity> itr = entities.iterator(); itr.hasNext();) {
 			Entity e = itr.next();
@@ -563,29 +685,27 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		}
 		entity_lock.unlock();
 		
-		rail.render(transform);
+		
+		
+		//rail.render(transform);
+		
 		
 		if (report_time < 0) {
 			report_time += 1d;
 			StringBuilder sb = new StringBuilder();
-			sb.append("position: " + view.pos());
-			sb.append('\n');
-			sb.append("entities: ").append(entities.size());
-			sb.append("    ");
-			sb.append("affectors: ").append(affectors.size());
-			sb.append('\n');
-			sb.append("terrain stats: " + qq + " : " + qm_messages.size() + " : " + QuadMap.get_check_num());
-			sb.append('\n');
-			double[] bd = terrain_height.getData(view.pos().x, view.pos().y);
-			String s = "biome stats: (" + bd[1] + ", " + bd[3] + "), (" + bd[2] + ", " + bd[4] + ")";
-			sb.append(s);
+			sb.append("fps: ").append(Window.fps());
 			sb.append("\n");
 			System.out.println(sb.toString());
+			
+			
 			
 			if (DEVPANEL) {
 				devpanel.update();
 			}
 		}
+		
+		
+
 		
 	}
 	
@@ -615,6 +735,17 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		case 32: //space
 			if (onGround()) {
 				z_speed += 20f;
+			}
+			break;
+		case GLFW_KEY_R:
+			if (SKeyboard.isPressed(341)) {
+				Runnable task = new Runnable() {
+					@Override
+					public void run() {
+						rail_shader.recompile();						
+					}
+				};
+				addTask(task);
 			}
 			break;
 		}
@@ -719,5 +850,11 @@ public class Hydra implements SKeyListener, SMouseMoveListener {
 		script_lock.lock();
 		scripts.remove(s);
 		script_lock.unlock();
+	}
+	
+	public static void addTask(Runnable t) {
+		task_lock.lock();
+		tasks.add(t);
+		task_lock.unlock();
 	}
 }

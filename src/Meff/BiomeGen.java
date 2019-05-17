@@ -1,4 +1,4 @@
-package Meff;
+package meff;
 
 import java.util.Random;
 
@@ -35,7 +35,7 @@ public class BiomeGen implements F2D {
 		altitude.addComponent(200432, 1, 0);
 		altitude.addComponent(200432, 1, Math.PI/4);
 		altitude.addComponent(1331182, 1, Math.PI/8);
-		altitude.setConstant(1 + 0.3785735);
+		altitude.setConstant(0.3785735);
 		
 		temperature = new Noise2D();
 		temperature.addComponent(400432, 1, 1);
@@ -102,6 +102,8 @@ public class BiomeGen implements F2D {
 		}
 		desert_mountains.setConstant(500);
 		biomes[2][2] = desert_mountains;
+		
+		desert_mountains.addComponent(80000000, 10000000, -0.3);
 	}
 	
 	@Override

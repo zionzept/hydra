@@ -8,16 +8,11 @@ import org.lwjgl.opengl.GL40;
 
 
 public class QuadMapRoot extends QuadMapBranch {
-	
-	private int fbo;
+
 	
 	
 	public QuadMapRoot(int position, double x0, double y0, int res) {
 		super(null, position, x0, y0, res);
-	
-		fbo = GL40.glGenFramebuffers();
-		//GL40.glBli
-		
 	}
 
 	@Override
@@ -32,23 +27,14 @@ public class QuadMapRoot extends QuadMapBranch {
 	
 	@Override
 	public void render(Matrix4f transform, boolean far) {
-		
 		grass_tex.bind(0);
 		shader.setUniform("grass_tex", 0);
+		shader.setUniform("alpha", 1.0f);
 		
-		// render far away scene to framebuffer
-		
-		quad_map[0].render(transform, true);
-		quad_map[1].render(transform, true);
-		quad_map[2].render(transform, true);
-		quad_map[3].render(transform, true);
-		
-		
-		// render close scene to screen
-		quad_map[0].render(transform, false);
-		quad_map[1].render(transform, false);
-		quad_map[2].render(transform, false);
-		quad_map[3].render(transform, false);
+		quad_map[0].render(transform, far);
+		quad_map[1].render(transform, far);
+		quad_map[2].render(transform, far);
+		quad_map[3].render(transform, far);
 	}
 	
 	@Override

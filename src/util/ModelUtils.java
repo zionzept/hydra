@@ -5,11 +5,12 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.joml.Vector3f;
 
-import Meff.BiomeGen;
+import meff.BiomeGen;
 import gl.Material;
 import gl.Model;
 import gl.ModelA;
@@ -17,12 +18,15 @@ import gl.ModelA;
 public class ModelUtils {
 	
 	private static HashMap<String, LinkedList<Model>> models;
-	private static HashMap<Model, Material> materials;
+	private static HashMap<Model, Material> model_materials;
+	
+	public static HashSet<Material> materials = new HashSet<Material>();
 	
 	
 	public static void init() {
 		models = new HashMap<>();
-		materials = new HashMap<>();
+		model_materials = new HashMap<>();
+		materials = new HashSet();
 		
 		initModelsFromFiles();
 		initModelsFromCode();
@@ -42,30 +46,40 @@ public class ModelUtils {
 	}
 	
 	private static void initModelsFromFiles() {
-		models.put("sphere", ModelLoader.load("", "sphere", false));
-		models.put("tree", ModelLoader.load("", "tree", false));
+		put("sphere", ModelLoader.load("", "sphere", false));
+		put("tree", ModelLoader.load("", "tree", false));
 		
-		for (int i = 1; i <= 14; i++) {
-			String suffix = Integer.toString(i);
-			while (suffix.length() < 2) {
-				suffix = '0' + suffix;
-			}
-			models.put("building_a" + '0' + suffix, ModelLoader.load("buildings", "Building_A" + suffix, true));
-		}
-		models.put("khalifa", ModelLoader.load("buildings", "khalifa", false));
+		//for (int i = 1; i <= 14; i++) {
+		//	String suffix = Integer.toString(i);
+		//	while (suffix.length() < 2) {
+		//		suffix = '0' + suffix;
+		//	}
+		//	models.put("building_a" + '0' + suffix, ModelLoader.load("buildings", "Building_A" + suffix, true));
+		//}
 		
-		models.put("rail", ModelLoader.load("trains", "Rails_OBJ", false));
-		models.put("locomotive", ModelLoader.load("trains", "locomotive", false));
+		put("khalifa", ModelLoader.load("buildings", "khalifa", false));
 		
-		models.put("stone_tower", ModelLoader.load("", "stone_tower", false));
-		models.put("spawner", ModelLoader.load("", "spawner", false));
+		put("rail", ModelLoader.load("trains", "rails", false));
+		//put("locomotive", ModelLoader.load("trains", "locomotive", false));
+		
+		put("stone_tower", ModelLoader.load("", "stone_tower", false));
+		put("spawner", ModelLoader.load("", "spawner", false));
 		
 	}
 	
 	private static void put(String name, Model model) {
-		LinkedList<Model> list = new LinkedList<>();
-		list.add(model);
-		models.put(name, list);
+		LinkedList<Model> models = new LinkedList<>();
+		models.add(model);
+		System.out.println("put");
+		put(name, models);
+	}
+	
+	private static void put(String name, LinkedList<Model> models) {
+		System.out.println("putput");
+		ModelUtils.models.put(name, models);
+		for (Model m : models) {
+			materials.add(m.material());
+		}
 	}
 	
 	private static void initModelsFromCode() {

@@ -31,8 +31,8 @@ public class Window {
 	public static void create(Hydra hydra) {
 
 		init_glfw(hydra);
-		init_and_run_gl_thread(hydra);
-		poll_window_event_loop();
+		init_and_run_gl_thread(hydra); // spawns thread
+		poll_window_event_loop(); // keeps thread until shutdown
 
 		// Free the window callbacks and destroy the window
 		glfwFreeCallbacks(window);
@@ -114,8 +114,9 @@ public class Window {
 			public void run() {
 				// Make the OpenGL context current
 				glfwMakeContextCurrent(window);
-				// Disable v-sync
+				// Enable v-sync
 				glfwSwapInterval(0);
+				//glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 				// Make the window visible
 				
 
@@ -141,23 +142,32 @@ public class Window {
 				hydra.init();
 				
 				glfwShowWindow(window);
-				
 				while (!shutdown) {
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 					hydra.update();
 					
-					try {
-						Thread.sleep(8);
+					/*try {
+						Thread.sleep(1);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}
+					}*/
 					
-					glfwSwapBuffers(window); // swap the color buffers
+					 glfwSwapBuffers(window); // swap the color buffers
+					 //TODO there's a conflict with other programs like satisfactory causing swapbuffer to be very slow.
+					 frames++;
+					 
 				}
 				hydra.close();
 			}
 		}).start();
+	}
+	
+	private static int frames;
+	public static int fps() {
+		int fps = frames;
+		frames = 0;
+		return fps;
 	}
 
 	private static void poll_window_event_loop() {
