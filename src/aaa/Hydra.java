@@ -13,7 +13,6 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
-import Meff.BiomeGen;
 import affectors.Affector;
 import affectors.RailMover;
 import affectors.TimedLife;
@@ -28,6 +27,7 @@ import core.Window;
 import gl.Material;
 import gl.Shader;
 import gl.Texture;
+import meff.BiomeGen;
 import scripts.Script;
 import terrain.QuadMapMessage;
 import terrain.QuadMap;

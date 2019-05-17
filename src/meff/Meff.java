@@ -1,4 +1,4 @@
-package Meff;
+package meff;
 
 public class Meff {
 
