@@ -1,4 +1,4 @@
-package meff;
+package Meff;
 
 public class SNoise2D implements F2D {
 

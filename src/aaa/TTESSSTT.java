@@ -1,6 +1,6 @@
 package aaa;
 
-import meff.SNoise2D;
+import Meff.SNoise2D;
 
 public class TTESSSTT {
 

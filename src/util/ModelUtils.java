@@ -10,7 +10,7 @@ import java.util.LinkedList;
 
 import org.joml.Vector3f;
 
-import meff.BiomeGen;
+import Meff.BiomeGen;
 import gl.Material;
 import gl.Model;
 import gl.ModelA;
