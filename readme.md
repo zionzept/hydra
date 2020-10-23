@@ -1,6 +1,8 @@
 # Hydra
 
-derpo
+A start of a simple game engine in java using OpenGL.
+
+![Alt text](/demo/terrain.png?raw=true)
 
 ## Dependencies
 
