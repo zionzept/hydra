@@ -26,9 +26,11 @@ public class Potato {
 		this.indices = indices;
 	}
 	
-	public LinkedList<TerrainSection> bake() {
-		LinkedList<TerrainSection> list = new LinkedList<>();
-		list.add(new TerrainSection(vertices, normals, tex_coords, ti, ai, tf, af, indices));
-		return list;
+	public TerrainSection bake() {
+		return new TerrainSection(vertices, normals, tex_coords, ti, ai, tf, af, indices);
+	}
+	
+	public String toString() {
+		return "Potato: [v=" + vertices.length + ", n=" + normals.length + ", t=" + tex_coords.length + ", i=" + indices.length + "]";
 	}
 }

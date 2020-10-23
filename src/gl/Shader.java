@@ -3,6 +3,8 @@ package gl;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 
+import java.util.LinkedList;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -11,7 +13,10 @@ import util.Util;
 
 public class Shader {
 	
+	public static final LinkedList<Shader> shaders = new LinkedList<Shader>();
+	
 	public static Shader phong;
+	public static Shader wood;
 	
 	private int progID;
 	private int vertID;

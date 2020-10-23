@@ -1,5 +1,6 @@
 package aaa;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -42,10 +44,14 @@ public class Devpanel extends JFrame {
 	private HashMap<String, Runnable> updates;
 	private String current = "player";
 	
+	private JTextArea monitor;
+	
 	public Devpanel() {
 		super("Hydra devpanel");
 		panels = new HashMap<String, JPanel>();
 		updates = new HashMap<String, Runnable>();
+		
+		JSplitPane outer = new JSplitPane();
 		
 		JSplitPane split = new JSplitPane();
 		JPanel pp;
@@ -124,9 +130,6 @@ public class Devpanel extends JFrame {
 		};
 		updates.put("player", run);
 		}
-		
-		
-		
 		
 		
 		{
@@ -325,11 +328,19 @@ public class Devpanel extends JFrame {
 		split.setLeftComponent(left);
 		split.setRightComponent(panels.get(current));
 		
-		add(split);
-		setSize(600, 800);
+		monitor = new JTextArea();
+		monitor.setBackground(new Color(21,21,21));
+		monitor.setForeground(Color.YELLOW);
+		
+		outer.setLeftComponent(split);
+		outer.setRightComponent(monitor);
+		add(outer);
+		setSize(800, 600);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	}
+	
+	
 	
 	public void gib(JTextField field, Object x) {
 		if (!field.hasFocus()) {
@@ -338,8 +349,11 @@ public class Devpanel extends JFrame {
 	}
 	
 	public void update() {
-		System.out.println(current);
 		updates.get(current).run();
+	}
+	
+	public void update_monitor(String text) {
+		monitor.setText(text);
 	}
 	
 }

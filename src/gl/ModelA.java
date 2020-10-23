@@ -41,7 +41,7 @@ public class ModelA extends Model {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		
-		material = Material.plain;
+		material = Material.store.get("plain");
 	}
 	
 	public void setMaterial(Material material) {
@@ -63,6 +63,8 @@ public class ModelA extends Model {
 	@Override
 	public void render(Matrix4f transform, Shader shader) {
 		shader.setUniform("world", transform);
+		
+		System.out.println("Render model_a: dc = " + draw_count);
 		
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);

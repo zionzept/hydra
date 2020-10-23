@@ -1,4 +1,4 @@
-package meff;
+package meff.meff2D;
 
 import org.joml.Vector2d;
 

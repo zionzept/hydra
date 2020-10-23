@@ -115,7 +115,7 @@ public class Window {
 				// Make the OpenGL context current
 				glfwMakeContextCurrent(window);
 				// Enable v-sync
-				glfwSwapInterval(0);
+				glfwSwapInterval(1);
 				//glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 				// Make the window visible
 				

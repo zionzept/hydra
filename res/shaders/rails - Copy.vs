@@ -59,7 +59,6 @@ void main() {
 
 
 
-
 saved stuff
 
 vec3 bent_v = vec3(

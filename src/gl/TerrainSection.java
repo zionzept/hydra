@@ -10,72 +10,66 @@ import java.nio.IntBuffer;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 
-public class TerrainSection extends Model {
-	
-	private int draw_count;
-	private int v_id;
-	private int n_id;
-	private int t_id;
-	private int i_id;
+import util.Util;
+
+public class TerrainSection extends Mesh {
 	private int ti_id;
 	private int ai_id;
 	private int tf_id;
 	private int af_id;
 	
 	public TerrainSection(float[] vertices, float[] normals, float[] tex_coords, float[] ti, float[] ai, float[] tf, float[] af, int[] indices) {
-		draw_count = indices.length;
+		super(vertices, normals, tex_coords, indices);
 		
+		/*
 		v_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, v_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(vertices), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(vertices), GL_STATIC_DRAW);
 		
 		n_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, n_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(normals), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(normals), GL_STATIC_DRAW);
 		
 		t_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, t_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(tex_coords), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(tex_coords), GL_STATIC_DRAW);
+		*/
 		
 		ti_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, ti_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(ti), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(ti), GL_STATIC_DRAW);
 		
 		ai_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, ai_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(ai), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(ai), GL_STATIC_DRAW);
 		
 		tf_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, tf_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(tf), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(tf), GL_STATIC_DRAW);
 		
 		af_id = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, af_id);
-		glBufferData(GL_ARRAY_BUFFER, createBuffer(af), GL_STATIC_DRAW);
-		
+		glBufferData(GL_ARRAY_BUFFER, Util.createBuffer(af), GL_STATIC_DRAW);
+		/*
 		i_id = glGenBuffers();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_id);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, createBuffer(indices), GL_STATIC_DRAW);
-		
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, Util.createBuffer(indices), GL_STATIC_DRAW);
+		*/
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	
 	@Override
 	public void free() {
-		glDeleteBuffers(v_id);
-		glDeleteBuffers(t_id);
-		glDeleteBuffers(n_id);
+		super.free();
 		glDeleteBuffers(ti_id);
 		glDeleteBuffers(ai_id);
 		glDeleteBuffers(tf_id);
 		glDeleteBuffers(af_id);
-		glDeleteBuffers(i_id);
 	}
 	
 	@Override
-	public void render(Matrix4f transform, Shader shader) {
-		shader.setUniform("world", transform);
+	public void render() {
+		//System.out.println("Render terrain_section: dc = " + draw_count);
 		
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
@@ -115,7 +109,6 @@ public class TerrainSection extends Model {
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_id);
 		
-		
 		//glDisable(GL_CULL_FACE);
 		
 		glDrawElements(GL_TRIANGLES, draw_count, GL_UNSIGNED_INT, 0);
@@ -132,17 +125,5 @@ public class TerrainSection extends Model {
 		glDisableVertexAttribArray(4);
 		glDisableVertexAttribArray(5);
 		glDisableVertexAttribArray(6);
-	}
-
-	@Override
-	public void setMaterial(Material material) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Material material() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

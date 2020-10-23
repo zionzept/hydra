@@ -18,25 +18,25 @@ public class Glow implements Attribute {
 	
 	@Override
 	public void enable(Entity e) {
-		for (Model m : e.getModels()) {
+		/*for (Model m : e.getModels()) {
 			Material material = m.material();
 			original = material.emission();
 			material.emission(color);
 		}
 		for (Entity child : e.getChildren()) {
 			enable(child);
-		}
+		}*/			//atm broken
 	}
 
 	@Override
 	public void disable(Entity e) {
-		for (Model m : e.getModels()) {
+		/*for (Model m : e.getModels()) {
 			Material material = m.material();
 			material.emission(original);
 		}
 		for (Entity child : e.getChildren()) {
 			disable(child);
-		}
+		}*/
 	}
 
 

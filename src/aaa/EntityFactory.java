@@ -30,7 +30,7 @@ public class EntityFactory {
 	
 	public static void createStoneTower(double x, double y) {
 		Entity e = new Entity();
-		e.addModels(ModelUtils.get("stone_tower"));
+		e.addMesh(ModelUtils.get("stone_tower").getFirst(), null);
 		e.translate((float)x, (float)y, (float)Hydra.terrain_height.get(x, y));
 		e.scale(2,2,10);
 		e.setShader(Shader.phong);
@@ -57,7 +57,7 @@ public class EntityFactory {
 	
 	public static void createStone(Vector3f pos) {
 		Entity e = new Entity();
-		e.addModels(ModelUtils.get("sphere"));
+		e.addMesh(ModelUtils.get("sphere").getFirst(), null);
 		e.setTranslation(pos.x, pos.y, pos.z);
 		e.scale(0.2f);
 		e.setShader(Shader.phong);
@@ -110,14 +110,16 @@ public class EntityFactory {
 			troll = true;
 		}
 		Entity e = new Entity();
-		e.addModels(ModelUtils.get("tree"));
+		Material mtl;
 		if (!troll) {
-			e.setMaterialOverride(new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
-					new Vector4f((float)Math.random(),0f,(float)Math.random(), 1f), 10));
+			mtl = new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
+					new Vector4f((float)Math.random(),0f,(float)Math.random(), 1f), 10);
 		} else {
-			e.setMaterialOverride(new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
-					new Vector4f((float)Math.random(),1f,(float)Math.random(), 1f), 10));
+			mtl = new Material("cactus", new Vector4f(0f,(float)Math.random(),0f, 1f), 
+					new Vector4f((float)Math.random(),1f,(float)Math.random(), 1f), 10);
 		}
+		e.addMesh(ModelUtils.get("tree").getFirst(), mtl);
+		
 		e.setTranslation((float)x, (float)y, (float)Hydra.terrain_height.get(x, y) - 1f);
 		e.scale((float)Math.random() + 2);
 		e.rotate_z((float)Math.random()*2*(float)Math.PI);
@@ -146,8 +148,8 @@ public class EntityFactory {
 	
 	// type temporary solution
 	public static void createSpawner(double x, double y, int type) {
-		Entity spawner = new Entity();
-		spawner.addModels(ModelUtils.get("spawner"));
+		EntityNode spawner = new EntityNode();
+		spawner.addMesh(ModelUtils.get("spawner").getFirst(), null); //TODO: fix mtl lookup for loaded models
 		spawner.translate((float)x, (float)y, (float)Hydra.terrain_height.get(x, y));
 		//e.scale(2,2,10);
 		spawner.setShader(Shader.phong);
@@ -156,7 +158,7 @@ public class EntityFactory {
 		Runnable run = null;
 		switch (type) {
 		case 0:
-			e.addModels(ModelUtils.get("sphere"));
+			e.addMesh(ModelUtils.get("sphere").getFirst(), null);
 			e.scale(0.2f);
 			run = new Runnable() {
 				@Override

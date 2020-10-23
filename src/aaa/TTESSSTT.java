@@ -1,6 +1,5 @@
 package aaa;
 
-import meff.SNoise2D;
 
 public class TTESSSTT {
 
@@ -10,7 +9,6 @@ public class TTESSSTT {
 		System.out.println(abs(5));
 		System.out.println(1023l<<52);
 		System.out.println("derp");
-		System.out.println(SNoise2D.p.length);
 	}
 	
 	public static float sqrt(float x) {

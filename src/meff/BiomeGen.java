@@ -2,9 +2,14 @@ package meff;
 
 import java.util.Random;
 
+import meff.meff2D.CompositeF2D;
+import meff.meff2D.F2D;
+import meff.meff2D.Noise2D;
+import meff.meff2D.SNoise2D;
+
 public class BiomeGen implements F2D {
 
-	private static final double TRANSITION = 0.01;
+	private static final double TRANSITION = 0.3;
 	private static final int T_SPLITS = 3;
 	private static final int A_SPLITS = 3;
 	
@@ -17,12 +22,13 @@ public class BiomeGen implements F2D {
 	private double tr;
 	private double ar;
 	
-	Noise2D altitude;
-	Noise2D temperature;
+	CompositeF2D altitude;
+	CompositeF2D temperature;
 	
-	Noise2D[][] biomes;
+	F2D[][] biomes;
 	
 	public BiomeGen() {
+		Random random;
 		
 		tw = (1 - TRANSITION * (T_SPLITS-1)) / T_SPLITS;
 		aw = (1 - TRANSITION * (A_SPLITS-1)) / A_SPLITS;
@@ -31,19 +37,29 @@ public class BiomeGen implements F2D {
 		tr = tiw / TRANSITION;
 		ar = aiw / TRANSITION;
 		
-		altitude = new Noise2D();
-		altitude.addComponent(200432, 1, 0);
-		altitude.addComponent(200432, 1, Math.PI/4);
-		altitude.addComponent(1331182, 1, Math.PI/8);
-		altitude.setConstant(0.3785735);
+		altitude = new CompositeF2D(0.5);
+		random = new Random(3654);
+		int c = 10;
+		for (int i = 1; i < c+1; i++) {
+			double a = 0.5*(random.nextDouble() + 1.0);
+			double s = Math.pow(a*i*100, 2);
+			System.out.println("S: " + s);
+			altitude.add(new SNoise2D(s,s,a/c*1.4));//a/c));
+		}
+	//	altitude.add(new SNoise2D(23409, 54291, 0.2));
+	//	altitude.add(new SNoise2D(54291, 23409, 0.2));
+	//	altitude.add(new SNoise2D(542910, 234090, 0.4));
 		
-		temperature = new Noise2D();
-		temperature.addComponent(400432, 1, 1);
-		temperature.addComponent(1531182, 1, 1 + Math.PI/8);
-		temperature.setConstant(0.5);
+		temperature = new CompositeF2D(0.5);
+		temperature.add(new SNoise2D(4000000, 4000000, 0.4));
+		temperature.add(new SNoise2D(4600000, 4600000, 0.4));
+		temperature.add(new SNoise2D(460, 460, 0.001));
 		
-		Random random;
-		biomes = new Noise2D[A_SPLITS][T_SPLITS];
+		//temperature.addComponent(400432, 1, 1);
+		//temperature.addComponent(1531182, 1, 1 + Math.PI/8);
+		//temperature.setConstant(0.5);
+		
+		biomes = new F2D[A_SPLITS][T_SPLITS];
 
 		Noise2D frozen_sea = new Noise2D();
 		frozen_sea.setConstant(-10000);
@@ -63,9 +79,8 @@ public class BiomeGen implements F2D {
 		snowy.addComponent(80, 10, 0.5);
 		biomes[1][0] = snowy;
 		
-		Noise2D plains = new Noise2D();
-		plains.setConstant(10);
-		plains.addComponent(400, 50, 0);
+		CompositeF2D plains = new CompositeF2D(10.0);
+		plains.add(new SNoise2D(80, 80, 2));
 		biomes[1][1] = plains;
 		
 		Noise2D desert = new Noise2D();
@@ -83,14 +98,13 @@ public class BiomeGen implements F2D {
 		glacier.setConstant(500);
 		biomes[2][0] = glacier;
 		
-		Noise2D mountains = new Noise2D();
+		CompositeF2D mountains = new CompositeF2D(8000);
 		random = new Random(987123);
 		for (int i = 1; i <= 30; i++) {
-			double size = 100 + Math.pow(1 + random.nextDouble() * i * 20, 2);
-			double amp = 0.1 + 0.1*random.nextDouble() + 1;
-			mountains.addComponent(size, size * amp, random.nextDouble());
+			double size = 10 + Math.pow(1 + random.nextDouble() * i * 10, 2);
+			double amp = 0.04 + 0.04*random.nextDouble();
+			mountains.add(new SNoise2D(size, size, amp*size));
 		}
-		mountains.setConstant(1000);
 		biomes[2][1] = mountains;
 		
 		Noise2D desert_mountains = new Noise2D();

@@ -35,9 +35,9 @@ uniform float view_distance;
 
 in vec2 uv;
 in float zz;
+in vec3 model_pos;
 in vec3 frag_normal;
 in vec3 frag_pos;
-in vec3 model_pos;
 
 out vec4 fragColor;
 

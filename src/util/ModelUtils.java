@@ -11,33 +11,31 @@ import java.util.LinkedList;
 import org.joml.Vector3f;
 
 import gl.Material;
+import gl.Mesh;
 import gl.Model;
 import gl.ModelA;
 import meff.BiomeGen;
 
 public class ModelUtils {
 	
-	private static HashMap<String, LinkedList<Model>> models;
-	private static HashMap<Model, Material> model_materials;
-	
-	public static HashSet<Material> materials = new HashSet<Material>();
-	
-	
-	public static void init() {
-		models = new HashMap<>();
+	private static HashMap<String, LinkedList<Mesh>> meshes = new HashMap<>();
+	private static HashMap<Mesh, Material> model_materials = new HashMap<>();
+	public static HashSet<Material> materials; // hmmm
+
+	static {
+		System.out.println("static");
+		meshes = new HashMap<>();
 		model_materials = new HashMap<>();
-		materials = new HashSet();
 		
 		initModelsFromFiles();
 		initModelsFromCode();
-		
 	}
 	
-	public static LinkedList<Model> get(String name) {
-		return models.get(name);
+	public static LinkedList<Mesh> get(String name) {
+		return meshes.get(name);
 	}
 	
-	public static LinkedList<Model> get(String name, int variant) {
+	public static LinkedList<Mesh> get(String name, int variant) {
 		String suffix = Integer.toString(variant);
 		while (suffix.length() < 3) {
 			suffix = '0' + suffix;
@@ -46,49 +44,161 @@ public class ModelUtils {
 	}
 	
 	private static void initModelsFromFiles() {
-		put("sphere", ModelLoader.load("", "sphere", false));
-		put("tree", ModelLoader.load("", "tree", false));
+		put2("sphere", ModelLoader.load("", "sphere", false));
+		put2("tree", ModelLoader.load("", "tree", false));
 		
-		//for (int i = 1; i <= 14; i++) {
-		//	String suffix = Integer.toString(i);
-		//	while (suffix.length() < 2) {
-		//		suffix = '0' + suffix;
-		//	}
-		//	models.put("building_a" + '0' + suffix, ModelLoader.load("buildings", "Building_A" + suffix, true));
-		//}
+//		for (int i = 1; i <= 14; i++) {
+//			String suffix = Integer.toString(i);
+//			while (suffix.length() < 2) {
+//				suffix = '0' + suffix;
+//			}
+//			put2("building_a" + '0' + suffix, ModelLoader.load("buildings", "Building_A" + suffix, true));
+//		}
 		
-		put("khalifa", ModelLoader.load("buildings", "khalifa", false));
+		put2("khalifa", ModelLoader.load("buildings", "khalifa", false));
 		
-		put("rail", ModelLoader.load("trains", "rails", false));
+		put2("rail", ModelLoader.load("trains", "rails", false));
 		//put("locomotive", ModelLoader.load("trains", "locomotive", false));
 		
-		put("stone_tower", ModelLoader.load("", "stone_tower", false));
-		put("spawner", ModelLoader.load("", "spawner", false));
+		put2("stone_tower", ModelLoader.load("", "stone_tower", false));
+		put2("spawner", ModelLoader.load("", "spawner", false));
 		
 	}
 	
-	private static void put(String name, Model model) {
-		LinkedList<Model> models = new LinkedList<>();
-		models.add(model);
-		System.out.println("put");
-		put(name, models);
+	private static void put(String name, LinkedList<Mesh> meshes) {
+		System.out.println("adding meshes : " + meshes.size());
+		ModelUtils.meshes.put(name, meshes);
+		System.out.println("size: " + ModelUtils.meshes.size());
 	}
 	
-	private static void put(String name, LinkedList<Model> models) {
-		System.out.println("putput");
-		ModelUtils.models.put(name, models);
-		for (Model m : models) {
-			materials.add(m.material());
+	private static void put2(String name, LinkedList<FatPotato> meshes) {
+		LinkedList<Mesh> models = new LinkedList<>(); // naming conventions on fire
+		for (FatPotato potato : meshes) {
+			models.add(potato.mesh);
 		}
+		System.out.println("adding meshes : " + models.size());
+		ModelUtils.meshes.put(name, models);
+		System.out.println("size: " + ModelUtils.meshes.size());
 	}
 	
 	private static void initModelsFromCode() {
-		put("cube", cube);
+		LinkedList<Mesh> list = new LinkedList<>();
+		list.add(new Mesh(
+				new float[] {
+						-.5f, -.5f, -.5f, //b
+						-.5f, .5f, -.5f,
+						.5f, .5f, -.5f,
+						.5f, -.5f, -.5f,
+						
+						-.5f, -.5f, .5f, //t
+						.5f, -.5f, .5f,
+						.5f, .5f, .5f,
+						-.5f, .5f, .5f,
+						
+						-.5f, -.5f, -.5f, //f
+						.5f, -.5f, -.5f,
+						.5f, -.5f, .5f,
+						-.5f, -.5f, .5f,
+						
+						-.5f, .5f, -.5f, //b
+						-.5f, .5f, .5f,
+						.5f, .5f, .5f,
+						.5f, .5f, -.5f,
+						
+						-.5f, -.5f, -.5f, //l
+						-.5f, -.5f, .5f,
+						-.5f, .5f, .5f,
+						-.5f, .5f, -.5f,
+						
+						.5f, -.5f, -.5f, //r
+						.5f, .5f, -.5f,
+						.5f, .5f, .5f,
+						.5f, -.5f, .5f
+				},
+				new float[] {
+						0f, 0f, -1f,
+						0f, 0f, -1f,
+						0f, 0f, -1f,
+						0f, 0f, -1f,
+						
+						0f, 0f, 1f,
+						0f, 0f, 1f,
+						0f, 0f, 1f,
+						0f, 0f, 1f,
+						
+						0f, -1f, 0f,
+						0f, -1f, 0f,
+						0f, -1f, 0f,
+						0f, -1f, 0f,
+						
+						0f, 1f, 0f,
+						0f, 1f, 0f,
+						0f, 1f, 0f,
+						0f, 1f, 0f,
+						
+						-1f, 0f, 0f,
+						-1f, 0f, 0f,
+						-1f, 0f, 0f,
+						-1f, 0f, 0f,
+						
+						1f, 0f, 0f,
+						1f, 0f, 0f,
+						1f, 0f, 0f,
+						1f, 0f, 0f,
+				},
+				new float[] {
+						0, 0,
+						0.25f, 0,
+						0.25f, 0.25f,
+						0, 0.25f,
+						
+						0.25f, 0f,
+						0.5f, 0f,
+						0.5f, 0.25f,
+						0.25f, 0.25f,
+						
+						0.5f, 0f,
+						0.75f, 0f,
+						0.75f, 0.25f,
+						0.5f, 0.25f,
+						
+						0.75f, 0f,
+						1f, 0f,
+						1f, 0.25f,
+						0.75f, 0.25f,
+						
+						0, 0.25f,
+						0.25f, 0.25f,
+						0.25f, 0.5f,
+						0, 0.5f,
+						
+						0.25f, 0.25f,
+						0.5f, 0.25f,
+						0.5f, 0.5f,
+						0.25f, 0.5f
+				},
+				new int[] {
+						0, 1, 2,
+						0, 2, 3,
+						4, 5, 6,
+						4, 6, 7,
+						8, 9, 10,
+						8, 10, 11,
+						12, 13, 14,
+						12, 14, 15,
+						16, 17, 18,
+						16, 18, 19,
+						20, 21, 22,
+						20, 22, 23
+				}
+			));
+		put("cube", list);
+		
 	}
 	
 	public static void free() {
-		for (LinkedList<Model> ml : models.values()) {
-			for (Model m : ml) {
+		for (LinkedList<Mesh> ml : meshes.values()) {
+			for (Mesh m : ml) {
 				m.free();
 			}
 		}
@@ -182,7 +292,7 @@ public class ModelUtils {
 		return new Potato(vertices, normals, tex_coords, ti, ai, tf, af, indices);
 	}
 	
-	public static LinkedList<Model> grid_xy(int x, int y) {
+	public static LinkedList<Mesh> grid_xy(int x, int y) {
 		x++;
 		y++;
 		double dx = 1;
@@ -222,12 +332,12 @@ public class ModelUtils {
 				indices[pos+5] = i*x + j + x;
 			}
 		}
-		LinkedList<Model> list = new LinkedList<Model>();
-		list.add(new ModelA(vertices, normals, tex_coords, indices));
+		LinkedList<Mesh> list = new LinkedList<Mesh>();
+		list.add(new Mesh(vertices, normals, tex_coords, indices));
 		return list; 
 	}
 	
-	public static LinkedList<Model> ball(int x, int y) {
+	public static LinkedList<Mesh> ball(int x, int y) {
 		
 		float[] vertices = new float[x*y*3];
 		float[] normals = new float[x*y*3];
@@ -264,124 +374,14 @@ public class ModelUtils {
 				indices[pos+5] = (i+1)*x + (j+1)%x;
 			}
 		}
-		LinkedList<Model> list = new LinkedList<>();
-		list.add(new ModelA(vertices, normals, tex_coords, indices));
+		LinkedList<Mesh> list = new LinkedList<Mesh>();
+		list.add(new Mesh(vertices, normals, tex_coords, indices));
 		return list;
 	}
-	
-	public static final ModelA cube = new ModelA(
-			new float[] {
-					-.5f, -.5f, -.5f, //b
-					-.5f, .5f, -.5f,
-					.5f, .5f, -.5f,
-					.5f, -.5f, -.5f,
-					
-					-.5f, -.5f, .5f, //t
-					.5f, -.5f, .5f,
-					.5f, .5f, .5f,
-					-.5f, .5f, .5f,
-					
-					-.5f, -.5f, -.5f, //f
-					.5f, -.5f, -.5f,
-					.5f, -.5f, .5f,
-					-.5f, -.5f, .5f,
-					
-					-.5f, .5f, -.5f, //b
-					-.5f, .5f, .5f,
-					.5f, .5f, .5f,
-					.5f, .5f, -.5f,
-					
-					-.5f, -.5f, -.5f, //l
-					-.5f, -.5f, .5f,
-					-.5f, .5f, .5f,
-					-.5f, .5f, -.5f,
-					
-					.5f, -.5f, -.5f, //r
-					.5f, .5f, -.5f,
-					.5f, .5f, .5f,
-					.5f, -.5f, .5f
-			},
-			new float[] {
-					0f, 0f, -1f,
-					0f, 0f, -1f,
-					0f, 0f, -1f,
-					0f, 0f, -1f,
-					
-					0f, 0f, 1f,
-					0f, 0f, 1f,
-					0f, 0f, 1f,
-					0f, 0f, 1f,
-					
-					0f, -1f, 0f,
-					0f, -1f, 0f,
-					0f, -1f, 0f,
-					0f, -1f, 0f,
-					
-					0f, 1f, 0f,
-					0f, 1f, 0f,
-					0f, 1f, 0f,
-					0f, 1f, 0f,
-					
-					-1f, 0f, 0f,
-					-1f, 0f, 0f,
-					-1f, 0f, 0f,
-					-1f, 0f, 0f,
-					
-					1f, 0f, 0f,
-					1f, 0f, 0f,
-					1f, 0f, 0f,
-					1f, 0f, 0f,
-			},
-			new float[] {
-					0, 0,
-					0.25f, 0,
-					0.25f, 0.25f,
-					0, 0.25f,
-					
-					0.25f, 0f,
-					0.5f, 0f,
-					0.5f, 0.25f,
-					0.25f, 0.25f,
-					
-					0.5f, 0f,
-					0.75f, 0f,
-					0.75f, 0.25f,
-					0.5f, 0.25f,
-					
-					0.75f, 0f,
-					1f, 0f,
-					1f, 0.25f,
-					0.75f, 0.25f,
-					
-					0, 0.25f,
-					0.25f, 0.25f,
-					0.25f, 0.5f,
-					0, 0.5f,
-					
-					0.25f, 0.25f,
-					0.5f, 0.25f,
-					0.5f, 0.5f,
-					0.25f, 0.5f
-			},
-			new int[] {
-					0, 1, 2,
-					0, 2, 3,
-					4, 5, 6,
-					4, 6, 7,
-					8, 9, 10,
-					8, 10, 11,
-					12, 13, 14,
-					12, 14, 15,
-					16, 17, 18,
-					16, 18, 19,
-					20, 21, 22,
-					20, 22, 23
-			}
-			);
 			
 	
-	public static LinkedList<Model> square_xy() {
-		ModelA model = new ModelA(
+	public static LinkedList<Mesh> square_xy() {
+		Mesh model = new Mesh(
 				new float[] {
 						-.5f, -.5f, 0f,
 						.5f, -.5f, 0f,
@@ -405,7 +405,7 @@ public class ModelUtils {
 						0, 2, 3,
 				}
 		);
-		LinkedList<Model> list = new LinkedList<>();
+		LinkedList<Mesh> list = new LinkedList<>();
 		list.add(model);
 		return list;
 	}

@@ -1,14 +1,23 @@
 package gl;
 
+import java.util.HashMap;
+
 import org.joml.Vector4f;
 
 public class Material {
 	
-	public static Material plain = new Material("plain", new Vector4f(0.5f, 0.5f, 0.5f, 1f), 10f);
-	public static final Material NULL = new Material("null") {
-		@Override
-		public void materialize(Shader shader) {}
-	};
+	public static final HashMap<String, Material> store = new HashMap<String, Material>();
+	
+	static {
+		String s;
+		s = "null";
+		store.put(s, new Material("null") {
+			@Override
+			public void materialize(Shader shader) {}
+		});
+		s = "plain";
+		store.put(s, new Material(s, new Vector4f(1.0f, 1.0f, 1.0f, 1f), 10f));
+	}
 	
 	private String name;
 	

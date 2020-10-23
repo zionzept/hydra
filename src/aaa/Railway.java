@@ -11,6 +11,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import gl.Material;
 import gl.Shader;
 import util.ModelUtils;
 import util.Util;
@@ -99,7 +100,7 @@ public class Railway {
 		*/
 		
 		Entity e = new Entity();
-		e.addModels(ModelUtils.get("rail"));
+		e.addMesh(ModelUtils.get("rail").getFirst(), Material.store.get("plain"));
 		e.translate((float)end_x, (float)end_y, (float)end_z);
 		e.rotate_y((float)-end_rise);
 		e.rotate_z((float)end_turn);
@@ -184,7 +185,7 @@ public class Railway {
 		*/
 		
 		Entity e = new Entity();
-		e.addModels(ModelUtils.get("rail"));
+		e.addMesh(ModelUtils.get("rail").getFirst(), Material.store.get("plain"));
 		e.translate((float)end_x, (float)end_y, (float)end_z);
 		e.rotate_y((float)-end_rise);
 		e.rotate_z((float)end_turn);

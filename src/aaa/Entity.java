@@ -5,24 +5,23 @@ import static java.lang.Math.sin;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import gl.Material;
+import gl.Mesh;
 import gl.Model;
 import gl.Shader;
-import gl.Texture;
 
 public class Entity {
 	
 	public static final Entity NULL = new Entity() {
 		@Override
-		public void addModels(LinkedList<? extends Model> models) {}
+		public void addMesh(Mesh mesh, Material material) {}
 		
 		@Override
-		public void setMaterialOverride(Material m) {}
+		public void addMeshes(LinkedList<? extends Mesh> meshes, LinkedList<Material> material) {}
 		
 		@Override
 		public boolean isDead() {
@@ -43,28 +42,25 @@ public class Entity {
 		}
 	};
 	
-	private LinkedList<Entity> children;
-	private Model[] model;
-	private Material[] material_override;
+	protected Shader shader;
+	protected LinkedList<Mesh> meshes;
+	protected LinkedList<Material> materials;
 	
-	private Shader shader;
-
-	private float scaling_x;
-	private float scaling_y;
-	private float scaling_z;
-	private float rotation_x;
-	private float rotation_y;
-	private float rotation_z;
-	private float translation_x;
-	private float translation_y;
-	private float translation_z;
+	protected float scaling_x;
+	protected float scaling_y;
+	protected float scaling_z;
+	protected float rotation_x;
+	protected float rotation_y;
+	protected float rotation_z;
+	protected float translation_x;
+	protected float translation_y;
+	protected float translation_z;
 	
-	private boolean dead;
-
+	protected boolean dead;
+	
 	public Entity() {
-		children = new LinkedList<>();
-		model = new Model[0];
-		material_override = new Material[0];
+		meshes = new LinkedList<Mesh>();
+		materials = new LinkedList<Material>();
 		scaling_x = 1;
 		scaling_y = 1;
 		scaling_z = 1;
@@ -86,72 +82,54 @@ public class Entity {
 		dead = true;
 	}
 	
-	public Model[] getModels() {
-		return model;
+	public LinkedList<Mesh> getModels() {
+		return meshes;
 	}
 	
 	public boolean isDead() {
 		return dead;
 	}
 	
-	public void addModels(LinkedList<? extends Model> models) {
-		Model[] new_model = new Model[model.length + models.size()];
-		int i;
-		for (i = 0; i < model.length; i++) {
-			new_model[i] = model[i];
-		}
-		for (Model m : models) {
-			new_model[i++] = m;
-		}
-		model = new_model;
-		Material[] new_material = new Material[model.length];
-		for (i = 0; i < material_override.length; i++) {
-			new_material[i] = material_override[i];
-		}
-		material_override = new_material;
-	}
-	
-	public void setMaterialOverride(Material material) {
-		material_override[material_override.length-1] = material;
-	}
-	
-	public void setMaterialOverrideR(Material material) {
-		material_override[material_override.length-1] = material;
-		for (Entity e : children) {
-			e.setMaterialOverrideR(material);
-		}
-	}
-	
-	public void addChild(Entity child) {
-		children.add(child);
-	}
-	
-	public LinkedList<Entity> getChildren() {
-		return children;
-	}
-	
 	public void setShader(Shader shader) {
 		this.shader = shader;
 	}
 	
+	public void addMesh(Mesh mesh, Material material) {
+		if (material == null) {
+			material = Material.store.get("plain");
+		}
+		meshes.add(mesh);
+		materials.add(material);
+		
+	}
+	
+
+	public void addMeshes(LinkedList<? extends Mesh> meshes, LinkedList<Material> materials) {
+		if (materials == null) {
+			materials = new LinkedList<Material>();
+		}
+		Iterator<? extends Mesh> mesh_itr = meshes.iterator();
+		Iterator<Material> mtl_itr = materials.iterator();
+		while (mesh_itr.hasNext()) {
+			addMesh(mesh_itr.next(), mtl_itr.hasNext() ? mtl_itr.next() : null);
+		}
+	}
+	
+
 	public void render(Matrix4f transform) {
 		Matrix4f new_transform = new Matrix4f();
 		transform.mulAffine(getTransform(), new_transform);
 		shader.bind();
-		for (int i = 0; i < model.length; i++) {
-			if (material_override[i] != null) {
-				material_override[i].materialize(shader);
-			} else {
-				model[i].material().materialize(shader);
-			}
-			model[i].render(new_transform, shader);
-		}
-		for (Entity child : children) {
-			child.render(new_transform);
+		shader.setUniform("world", new_transform);
+		Iterator<? extends Mesh> mesh_itr = meshes.iterator();
+		Iterator<Material> mtl_itr = materials.iterator();
+		while (mesh_itr.hasNext()) {
+			mtl_itr.next().materialize(shader);
+			mesh_itr.next().render();
 		}
 	}
-
-	public Matrix4f getTransform() {
+	
+	public Matrix4f getTransform() { // can automatically precalc for performance on stationary, can probably combine cleanup for EntityNode on render to use calculated transform of render call in this class then.
 		Matrix4f t0 = new Matrix4f();
 		Matrix4f t1;
 		// translate
@@ -282,5 +260,5 @@ public class Entity {
 	public Vector3f getTranslation() {
 		return new Vector3f(translation_x, translation_y, translation_z);
 	}
-
+	
 }

@@ -1,17 +1,19 @@
 package util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import gl.Material;
-import gl.Mesh;
-import gl.Model;
-import gl.ModelA;
+import gl.MeshPotato;
 import gl.TexBase;
 
 public class ModelLoader {
@@ -21,7 +23,8 @@ public class ModelLoader {
 	 * @param subpath	Relative path starting from res folder. Do not provide file extension.
 	 * @return
 	 */
-	public static LinkedList<Model> load(String subpath, String file_name, boolean flip) {
+	public static LinkedList<FatPotato> load(String subpath, String file_name, boolean flip) {
+		System.out.println("obj: " + subpath + "/" + file_name);
 		if (subpath.length() > 0) {
 			file_name = subpath + "/" + file_name;
 		}
@@ -31,16 +34,17 @@ public class ModelLoader {
 		ArrayList<Float> t_list = new ArrayList<Float>();
 		ArrayList<Float> n_list = new ArrayList<Float>();
 		
-		HashMap<String, Mesh> meshes = new HashMap<>(); // material name, mesh
-		HashMap<Mesh, Material> mesh_mtl = new HashMap<>(); // mesh, material
-		Mesh mesh = new Mesh();
+		HashMap<String, MeshPotato> meshes = new HashMap<>(); // material name, mesh
+		HashMap<String, Material> mesh_mtl = new HashMap<>(); // mesh, material
+		MeshPotato mesh = new MeshPotato();
 		meshes.put("default", mesh);
-		mesh.material = Material.plain;
-		mesh_mtl.put(mesh, Material.plain);
-		
-		try (Scanner sc = new Scanner(file)) {
-			while (sc.hasNext()) {
-				String line = sc.nextLine();
+		try (BufferedReader sc = new BufferedReader(new FileReader(file))) {
+			String line;
+			while (true) {
+				line = sc.readLine();
+				if (line == null) {
+					break;
+				}
 				String[] s = line.split("( )+");
 				if (s.length == 0) { //fail safe
 					continue;
@@ -48,15 +52,12 @@ public class ModelLoader {
 				if (s[0].equals("#")) { //comments
 					continue;
 				}
-				if (s[0].equals("mtllib")) { //TODO: add mtl loader here
+				if (s[0].equals("mtllib")) {
 					meshes = new HashMap<>();
-					mesh_mtl = new HashMap<>();
-					HashMap<String, Material> materials = loadMtl(subpath, s[1]);
-					for (Map.Entry<String, Material> entry : materials.entrySet()) {
-						mesh = new Mesh();
-						mesh.material = entry.getValue();
+					mesh_mtl = loadMtl(subpath, s[1]);
+					for (Map.Entry<String, Material> entry : mesh_mtl.entrySet()) {
+						mesh = new MeshPotato();
 						meshes.put(entry.getKey(), mesh);
-						mesh_mtl.put(mesh, entry.getValue());
 					}
 					continue;
 				}
@@ -92,10 +93,9 @@ public class ModelLoader {
 				if (s[0].equals("usemtl")) {
 					mesh = meshes.get(s[1]);
 					if (mesh == null) {
-						mesh = new Mesh();
-						mesh.material = Material.plain;
+						mesh = new MeshPotato();
 						meshes.put(s[1], mesh);
-						mesh_mtl.put(mesh, Material.plain);
+						//mesh_mtl.put(mesh, Material.plain); ???
 					}
 				}
 				if (s[0].equals("s")) { // shading smoothness
@@ -126,72 +126,20 @@ public class ModelLoader {
 					mesh.index_marker += s.length - 1;
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 		
-		LinkedList<Model> models = new LinkedList<>();
-		for (Mesh m : meshes.values()) {
-			for (int i = 0; i < m.v_indices.size(); i++) {
-				int index = m.v_indices.get(i);
-				if (index < 0) {
-					m.v_indices.set(i, (v_list.size() + 3*index) / 3 + 1);
-				}
-			}
-			for (int i = 0; i < m.t_indices.size(); i++) {
-				int index = m.t_indices.get(i);
-				if (index < 0) {
-					m.t_indices.set(i, (t_list.size() + 2*index) / 2 + 1);
-				}
-			}
-			for (int i = 0; i < m.n_indices.size(); i++) {
-				int index = m.n_indices.get(i);
-				if (index < 0) {
-					m.n_indices.set(i, (n_list.size() / 3 + index) + 1);
-				}
-			}
-			
-			
-			if (t_list.size() == 0) {
-				t_list.add(0f);
-				t_list.add(0f);
-			}
-			
-			float[] vertices = new float[m.index_marker*3];
-			float[] tex_coords = new float[m.index_marker*2];
-			float[] normals = new float[m.index_marker*3];
-			
-			/*for (int i = 0; i < indices.size(); i++) {
-				vertices[i*3] = v_list.get(v_indices.get(indices.get(i))*3);
-				vertices[i*3+1] = v_list.get(v_indices.get(indices.get(i))*3+1);
-				vertices[i*3+2] = v_list.get(v_indices.get(indices.get(i))*3+2);
-				tex_coords[i*2] = t_list.get(t_indices.get(indices.get(i))*2);
-				tex_coords[i*2+1] = t_list.get(t_indices.get(indices.get(i))*2+1);
-				normals[i*3] = n_list.get(n_indices.get(indices.get(i))*3);
-				normals[i*3+1] = n_list.get(n_indices.get(indices.get(i))*3+1);
-				normals[i*3+2] = n_list.get(n_indices.get(indices.get(i))*3+2);
-			}*/
-			for (int i = 0; i < m.index_marker; i++) {
-				vertices[i*3] = v_list.get(m.v_indices.get(i)*3);
-				vertices[i*3+1] = v_list.get(m.v_indices.get(i)*3+1);
-				vertices[i*3+2] = v_list.get(m.v_indices.get(i)*3+2);
-				tex_coords[i*2] = t_list.get(m.t_indices.get(i)*2);
-				tex_coords[i*2+1] = t_list.get(m.t_indices.get(i)*2+1);
-				int n_id = m.n_indices.get(i)*3;
-				normals[i*3] = n_list.get(n_id);
-				normals[i*3+1] = n_list.get(n_id+1);
-				normals[i*3+2] = n_list.get(n_id+2);
-			}
-			int[] id = m.indices.stream().mapToInt(Integer::intValue).toArray();
-			Model model = new ModelA(vertices, normals, tex_coords, id);
-			model.setMaterial(m.material);
-			models.add(model);
+		LinkedList<FatPotato> models = new LinkedList<>();
+		for (Map.Entry<String, MeshPotato> entry : meshes.entrySet()) {
+			models.add(new FatPotato(entry.getValue().bake(v_list, t_list, n_list), mesh_mtl.get(entry.getKey())));
 		}
 		return models;
 	}
 	
 	private static HashMap<String, Material> loadMtl(String subpath, String file_name) {
+		System.out.println("  mtl: " + subpath + "/" + file_name);
 		if (subpath.length() > 0) {
 			file_name = subpath + "/" + file_name;
 		}
@@ -199,58 +147,83 @@ public class ModelLoader {
 		Material current_mtl = null;
 		File file = new File("res/models/" + file_name);
 		try (Scanner sc = new Scanner(file)) {
-			while (sc.hasNext()) {
-				String s = sc.next();
-				String[] path = null;
-				switch (s.toLowerCase()) {
+			String line;
+			while (true) {
+				try {
+					line = sc.nextLine();
+				} catch (NoSuchElementException e) {
+					break;
+				}
+				
+				if (line == null) {
+					break;
+				}
+				String[] s = line.split("( )+");
+				String[] path;
+				String u;
+				switch (s[0].toLowerCase()) {
 				case "#":
 					sc.nextLine();
 					break;
 				case "newmtl":
-					String name = sc.next();
-					current_mtl = new Material(name);
-					materials.put(name, current_mtl);
+					current_mtl = new Material(s[1]);
+					materials.put(s[1], current_mtl);
 					break;
 				case "ns":
-					current_mtl.shininess(sc.nextFloat());
+					current_mtl.shininess(Float.parseFloat(s[1]));
 					break;
 				case "ka":
-					current_mtl.ambient(sc.nextFloat(), sc.nextFloat(), sc.nextFloat());
+					current_mtl.ambient(Float.parseFloat(s[1]), Float.parseFloat(s[2]), Float.parseFloat(s[3]));
 					break;
 				case "kd":
-					current_mtl.diffuse(sc.nextFloat(), sc.nextFloat(), sc.nextFloat());
+					current_mtl.diffuse(Float.parseFloat(s[1]), Float.parseFloat(s[2]), Float.parseFloat(s[3]));
 					break;
 				case "ks":
-					current_mtl.specular(sc.nextFloat(), sc.nextFloat(), sc.nextFloat());
+					current_mtl.specular(Float.parseFloat(s[1]), Float.parseFloat(s[2]), Float.parseFloat(s[3]));
 					break;
 				case "ke":
-					current_mtl.emission(sc.nextFloat(), sc.nextFloat(), sc.nextFloat());
+					current_mtl.emission(Float.parseFloat(s[1]), Float.parseFloat(s[2]), Float.parseFloat(s[3]));
 					break;
 				case "map_ka":
-					path = sc.nextLine().trim().split("\\\\");
+					u = s[1];
+					for (int i = 2; i < s.length; i++) {
+						u += " " + s[i];
+					}
+					path = u.trim().split("\\\\\\\\");
 					current_mtl.ambient_tex(TexBase.get(path[path.length - 1]));
 					break;
 				case "map_kd":
-					path = sc.nextLine().trim().split("\\\\");
+					u = s[1];
+					for (int i = 2; i < s.length; i++) {
+						u += " " + s[i];
+					}
+					path = u.trim().split("\\\\\\\\");
 					current_mtl.diffuse_tex(TexBase.get(path[path.length - 1]));
 					break;
 				case "map_ks":
-					path = sc.nextLine().trim().split("\\\\");
+					u = s[1];
+					for (int i = 2; i < s.length; i++) {
+						u += " " + s[i];
+					}
+					path = u.trim().split("\\\\\\\\");
 					current_mtl.specular_tex(TexBase.get(path[path.length - 1]));
 					break;
 				case "map_ke":
-					path = sc.nextLine().trim().split("\\\\");
+					u = s[1];
+					for (int i = 2; i < s.length; i++) {
+						u += " " + s[i];
+					}
+					path = u.trim().split("\\\\\\\\");
 					current_mtl.emission_tex(TexBase.get(path[path.length - 1]));
 					break;
 				case "map_bump":
-					if (sc.next().equals("-bm")) {
-						float scale = sc.nextFloat();
-						String seed_string = sc.nextLine();
+					if (s[1].equals("-bm")) {
+						float scale = Float.parseFloat(s[2]);
+						String seed_string = s[3];
 						int seed = seed_string.hashCode();
 						current_mtl.bump_noise(scale, seed);
 					} else {
-						sc.nextLine();
-						System.out.println("no support for bump map by texture");
+						System.err.println("no support for bump map by texture");
 					}
 					break;
 					
@@ -260,7 +233,9 @@ public class ModelLoader {
 				case "tr":
 				case "tf":
 				case "illum":
-					sc.nextLine();
+					try {
+						sc.nextLine();						
+					} catch (NoSuchElementException e) {}
 					break;
 				default:
 					System.out.println("unhandled case in mtl loader on: " + s);

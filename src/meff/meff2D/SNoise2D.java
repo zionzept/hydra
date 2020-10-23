@@ -1,4 +1,6 @@
-package meff;
+package meff.meff2D;
+
+import meff.Meff;
 
 public class SNoise2D implements F2D {
 
@@ -14,7 +16,7 @@ public class SNoise2D implements F2D {
 			152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 189, 22, 39, 253, 19, 98, 108, 110, 79, 113,
 			224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241,
 			81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50,
-			45, 127, 4, 150, 154, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 273, 141, 128, 195, 78, 66, 215, 61, 156,
+			45, 127, 4, 150, 154, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156,
 			180 };
 	
 	private static final int perm[] = new int[512];
@@ -27,10 +29,23 @@ public class SNoise2D implements F2D {
 	private static double dot(int g[], double x, double y) {
 		return g[0]*x + g[1]*y;
 	}
+	
+	
+	private double xs;
+	private double ys;
+	private double zs;
+	
+	public SNoise2D(double xs, double ys, double zs) {
+		this.xs = xs;
+		this.ys = ys;
+		this.zs = zs;
+	}
 
 	@Override
 	public double get(double xin, double yin) {
-
+		xin /= xs;
+		yin /= ys;
+		
 		double n0, n1, n2; // noise contribution from three corners of simplex
 
 		final double F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
@@ -62,10 +77,11 @@ public class SNoise2D implements F2D {
 		
 		int ii = i & 255;
 		int jj = j & 255;
+		
 		int gi0 = perm[ii + perm[jj]] % 12;
 		int gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
 		int gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
-		
+
 		//calculate contributions
 		double t0 = 0.5 - x0*x0 - y0*y0;
 		if (t0 < 0) {
@@ -91,7 +107,7 @@ public class SNoise2D implements F2D {
 			n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
 		}
 
-		return 70.0 * (n0 + n1 + n2);
+		return zs * 70.0 * (n0 + n1 + n2);
 	}
 
 }

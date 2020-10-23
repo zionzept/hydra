@@ -10,7 +10,10 @@ import aaa.Entity;
 import aaa.Hydra;
 import core.SKeyboard;
 import gl.Material;
+import gl.Mesh;
 import gl.Model;
+import gl.Shader;
+import gl.TerrainSection;
 import util.Potato;
 
 public class QuadMapLeaf extends QuadMap {
@@ -57,7 +60,7 @@ public class QuadMapLeaf extends QuadMap {
 		if (terrain == Entity.NULL) {
 			
 		} else {
-			for (Model m : terrain.getModels()) {
+			for (Mesh m : terrain.getModels()) {
 				m.free();
 				QuadMap.modify_check_num(-1);
 			}
@@ -69,9 +72,9 @@ public class QuadMapLeaf extends QuadMap {
 		if (potato != null) {
 			Entity baked_potato = new Entity();
 			QuadMap.modify_check_num(1);
-			baked_potato.addModels(potato.bake());
-			baked_potato.setMaterialOverride(Material.NULL);
-			baked_potato.setShader(Hydra.terrain_shader);
+			TerrainSection bp = potato.bake();
+			baked_potato.addMesh(bp, Material.store.get("null"));
+			baked_potato.setShader(shader);
 			terrain = baked_potato;
 			potato = null;
 			parent.ready_counter++;
@@ -106,7 +109,7 @@ public class QuadMapLeaf extends QuadMap {
 	
 	@Override
 	public void render(Matrix4f transform, boolean far) {
-		
+	//	System.out.println("Render terrain leaf: far = " + far);
 		if (far) {
 			terrain.render(transform);
 		}
